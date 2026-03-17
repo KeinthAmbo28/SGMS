@@ -1,0 +1,12 @@
+{
+  "name": "smartgym-system",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Smart Gym Management System (backend + database + UI)",
+  "type": "module",
+  "scripts": {
+    "dev": "node backend/src/server.js",
+    "start": "node backend/src/server.js"
+  }
+}
+

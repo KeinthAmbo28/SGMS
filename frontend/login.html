@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Login</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+  </head>
+  <body>
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-left">
+          <h1>Smart Gym Management System</h1>
+          <p class="small" style="margin-top: 14px">
+            Default admin: <b>admin</b> / <b>admin123</b>
+          </p>
+        </div>
+        <div class="login-right">
+          <h2>Login</h2>
+          <div class="muted small">Use your admin/staff account.</div>
+
+          <label for="username">Username</label>
+          <input id="username" placeholder="Enter username" autocomplete="username" />
+
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
+
+          <div class="actions">
+            <button class="btn btn-primary" id="loginBtn">Sign in</button>
+            <button class="btn btn-ghost" id="fillBtn" type="button">Fill admin</button>
+          </div>
+
+          <div class="error" id="errBox"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { api, setToken, getToken } from "/assets/js/app.js";
+
+      const errBox = document.getElementById("errBox");
+      const username = document.getElementById("username");
+      const password = document.getElementById("password");
+
+      if (getToken()) {
+        // If already logged in, go straight to dashboard
+        window.location.href = "/adminDashboard.html";
+      }
+
+      document.getElementById("fillBtn").addEventListener("click", () => {
+        username.value = "admin";
+        password.value = "admin123";
+      });
+
+      async function login() {
+        errBox.style.display = "none";
+        try {
+          const data = await api("/api/auth/login", {
+            method: "POST",
+            auth: false,
+            body: { username: username.value.trim(), password: password.value }
+          });
+          setToken(data.token);
+          window.location.href = "/adminDashboard.html";
+        } catch (e) {
+          errBox.textContent = e.message || "Login failed";
+          errBox.style.display = "block";
+        }
+      }
+
+      document.getElementById("loginBtn").addEventListener("click", login);
+      password.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") login();
+      });
+    </script>
+  </body>
+</html>
+

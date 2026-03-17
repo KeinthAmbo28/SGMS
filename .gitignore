@@ -1,0 +1,25 @@
+node_modules/
+backend/node_modules/
+
+# SQLite database (generated at runtime)
+backend/src/db/*.sqlite
+backend/src/db/*.sqlite-journal
+backend/src/db/*.sqlite-wal
+backend/src/db/*.sqlite-shm
+
+# Env files
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+

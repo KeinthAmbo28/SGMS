@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Member Login</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+  </head>
+  <body>
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-left">
+          <h1>Member Portal</h1>
+          <p>
+            Create your member account, log in, check in/out, and choose an available trainer.
+          </p>
+        </div>
+        <div class="login-right">
+          <h2>Member Login</h2>
+          <div class="muted small">Sign in with your member account.</div>
+
+          <label for="username">Username</label>
+          <input id="username" placeholder="Enter username" autocomplete="username" />
+
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
+
+          <div class="actions">
+            <button class="btn btn-primary" id="loginBtn">Login</button>
+            <button class="btn btn-ghost" id="toggleBtn" type="button">Create account</button>
+          </div>
+
+          <div id="registerBox" style="display:none; margin-top:14px">
+            <h2 style="margin-top:6px">Register</h2>
+            <div class="muted small">Create a new member account.</div>
+
+            <label for="fullName">Full name</label>
+            <input id="fullName" placeholder="Enter full name" autocomplete="name" />
+
+            <div class="form-row">
+              <div>
+                <label for="regUsername">Username</label>
+                <input id="regUsername" placeholder="Create a username" autocomplete="username" />
+              </div>
+              <div>
+                <label for="regPassword">Password</label>
+                <input id="regPassword" type="password" placeholder="Min 6 characters" autocomplete="new-password" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label for="membershipType">Membership</label>
+                <select id="membershipType">
+                  <option value="monthly">Monthly</option>
+                  <option value="annual">Annual</option>
+                </select>
+              </div>
+              <div>
+                <label for="phone">Phone</label>
+                <input id="phone" placeholder="09xx..." autocomplete="tel" />
+              </div>
+            </div>
+
+            <label for="email">Email (optional)</label>
+            <input id="email" placeholder="name@email.com" autocomplete="email" />
+
+            <div class="actions">
+              <button class="btn btn-primary" id="registerBtn" type="button">Create account</button>
+            </div>
+          </div>
+
+          <div class="error" id="errBox"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { memberApi, setMemberToken, getMemberToken } from "/assets/js/memberApp.js";
+
+      const errBox = document.getElementById("errBox");
+      const username = document.getElementById("username");
+      const password = document.getElementById("password");
+      const registerBox = document.getElementById("registerBox");
+
+      if (getMemberToken()) {
+        window.location.href = "/memberDashboard.html";
+      }
+
+      function showError(msg){
+        errBox.textContent = msg || "Something went wrong";
+        errBox.style.display = "block";
+      }
+
+      function clearError(){
+        errBox.style.display = "none";
+      }
+
+      document.getElementById("toggleBtn").addEventListener("click", () => {
+        registerBox.style.display = registerBox.style.display === "none" ? "block" : "none";
+      });
+
+      async function login() {
+        clearError();
+        try {
+          const data = await memberApi("/api/member/login", {
+            method: "POST",
+            auth: false,
+            body: { username: username.value.trim(), password: password.value }
+          });
+          setMemberToken(data.token);
+          window.location.href = "/memberDashboard.html";
+        } catch (e) {
+          showError(e.message);
+        }
+      }
+
+      async function register() {
+        clearError();
+        try {
+          const regUsername = document.getElementById("regUsername").value.trim();
+          const regPassword = document.getElementById("regPassword").value;
+          const data = await memberApi("/api/member/register", {
+            method: "POST",
+            auth: false,
+            body: {
+              full_name: document.getElementById("fullName").value.trim(),
+              username: regUsername || username.value.trim(),
+              password: regPassword || password.value,
+              membership_type: document.getElementById("membershipType").value,
+              phone: document.getElementById("phone").value.trim() || null,
+              email: document.getElementById("email").value.trim() || null
+            }
+          });
+          setMemberToken(data.token);
+          window.location.href = "/memberDashboard.html";
+        } catch (e) {
+          showError(e.message);
+        }
+      }
+
+      document.getElementById("loginBtn").addEventListener("click", login);
+      document.getElementById("registerBtn").addEventListener("click", register);
+      password.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") login();
+      });
+    </script>
+  </body>
+</html>
+

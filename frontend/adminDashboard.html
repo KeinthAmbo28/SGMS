@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">SMARTGYM</div>
+        <nav class="nav">
+          <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
+          <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
+          <a data-nav="trainers" href="/trainers.html"><i class="fa-solid fa-user-tie"></i>Trainers</a>
+          <a data-nav="attendance" href="/attendance.html"><i class="fa-solid fa-clipboard-check"></i>Attendance</a>
+          <a data-nav="payments" href="/payments.html"><i class="fa-solid fa-credit-card"></i>Payments</a>
+          <a data-nav="reports" href="/reports.html"><i class="fa-solid fa-chart-column"></i>Reports</a>
+          <a data-nav="settings" href="/settings.html"><i class="fa-solid fa-gear"></i>Settings</a>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="logout">
+          <button id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="page-title">DASHBOARD</div>
+          <div class="user-pill">
+            <div id="userLabel">Admin</div>
+            <div class="avatar"></div>
+          </div>
+        </div>
+
+        <section class="grid-kpis">
+          <div class="kpi">
+            <div>
+              <div class="value" id="kpiMembers">-</div>
+              <div class="label">Members</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div>
+              <div class="value" id="kpiTrainers">-</div>
+              <div class="label">Trainers</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div>
+              <div class="value" id="kpiClasses">-</div>
+              <div class="label">Classes today</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div>
+              <div class="value" id="kpiRevenue">-</div>
+              <div class="label">Revenue</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid-panels">
+          <div class="panel">
+            <h3>Attendance Overview</h3>
+            <canvas id="attendanceChart" height="110"></canvas>
+          </div>
+          <div class="panel">
+            <h3>Membership Type</h3>
+            <canvas id="membershipChart" height="110"></canvas>
+            <div class="small muted" style="text-align:center;margin-top:6px">
+              <span style="display:inline-block;width:10px;height:10px;background:#7a1f1f;border-radius:2px;margin-right:6px"></span>Annual
+              <span style="display:inline-block;width:10px;height:10px;background:#111827;border-radius:2px;margin:0 6px 0 14px"></span>Monthly
+            </div>
+          </div>
+        </section>
+
+        <section class="grid-lower">
+          <div class="panel">
+            <h3 style="text-align:left">Recent Activities</h3>
+            <ul class="card-list" id="recentList"></ul>
+          </div>
+          <div class="panel">
+            <h3>Payment Collection</h3>
+            <canvas id="paymentsChart" height="110"></canvas>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/dashboard.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Member Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <div class="app" style="grid-template-columns: 1fr">
+      <main class="main" style="max-width: 1200px; margin: 0 auto; width: 100%;">
+        <div class="topbar">
+          <div class="page-title">MEMBER DASHBOARD</div>
+          <div class="user-pill">
+            <div id="memberName">Member</div>
+            <button class="btn btn-ghost btn-small btn-logout" id="memberLogoutBtn" type="button" title="Logout">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+            <div class="avatar"></div>
+          </div>
+        </div>
+
+        <div class="grid-panels" style="grid-template-columns: 1fr 1fr">
+          <section class="panel">
+            <h3 style="text-align:left">Check-in / Check-out</h3>
+            <div class="muted small">Your attendance is recorded and visible to the admin.</div>
+
+            <div class="actions" style="margin-top:12px">
+              <button class="btn btn-primary" id="checkInBtn"><i class="fa-solid fa-check"></i>Check in</button>
+              <button class="btn btn-ghost" id="checkOutBtn"><i class="fa-solid fa-door-open"></i>Check out</button>
+            </div>
+            <div class="small muted" id="checkMsg" style="margin-top:10px"></div>
+          </section>
+
+          <section class="panel">
+            <h3 style="text-align:left">Select Available Trainer</h3>
+            <div class="muted small">Choose from active trainers.</div>
+
+            <label>Trainer</label>
+            <select id="trainerSelect"></select>
+            <div class="actions">
+              <button class="btn btn-primary" id="saveTrainerBtn"><i class="fa-solid fa-user-check"></i>Save</button>
+            </div>
+            <div class="small muted" id="trainerMsg" style="margin-top:10px"></div>
+          </section>
+        </div>
+
+        <div class="panel" style="margin-top:14px">
+          <h3 style="text-align:left">My Attendance (latest 50)</h3>
+          <div style="overflow:auto; margin-top:10px">
+            <table>
+              <thead>
+                <tr>
+                  <th>Check-in</th>
+                  <th>Check-out</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="attTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/memberDashboard.js"></script>
+  </body>
+</html>
+

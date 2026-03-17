@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Settings</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">SMARTGYM</div>
+        <nav class="nav">
+          <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
+          <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
+          <a data-nav="trainers" href="/trainers.html"><i class="fa-solid fa-user-tie"></i>Trainers</a>
+          <a data-nav="attendance" href="/attendance.html"><i class="fa-solid fa-clipboard-check"></i>Attendance</a>
+          <a data-nav="payments" href="/payments.html"><i class="fa-solid fa-credit-card"></i>Payments</a>
+          <a data-nav="reports" href="/reports.html"><i class="fa-solid fa-chart-column"></i>Reports</a>
+          <a data-nav="settings" href="/settings.html"><i class="fa-solid fa-gear"></i>Settings</a>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="logout">
+          <button id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="page-title">SETTINGS DASHBOARD</div>
+          <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
+        </div>
+
+        <div class="grid-panels" style="grid-template-columns: 1.4fr 1fr">
+          <div class="panel">
+            <h3 style="text-align:left">Manage User Accounts</h3>
+            <div class="muted small">Admins can create/update/delete app users.</div>
+
+            <label>Existing users</label>
+            <select id="userSelect"></select>
+
+            <label>Username</label>
+            <input id="username" placeholder="Enter username" />
+
+            <label>Password</label>
+            <input id="password" placeholder="Enter password (min 6)" type="password" />
+
+            <label>User Type</label>
+            <select id="role">
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+              <option value="trainer">Trainer</option>
+            </select>
+
+            <div class="actions">
+              <button class="btn btn-primary btn-small" id="createBtn">Create</button>
+              <button class="btn btn-ghost btn-small" id="updateBtn">Update</button>
+              <button class="btn btn-danger btn-small" id="deleteBtn">Delete</button>
+            </div>
+            <div class="small muted" id="userMsg" style="margin-top:10px"></div>
+          </div>
+
+          <div class="panel">
+            <h3 style="text-align:left">Retrieve User Data</h3>
+            <button class="btn btn-primary btn-small" id="retrieveBtn">Retrieve All Users</button>
+            <div class="small muted" id="retrieveMsg" style="margin-top:10px">No data retrieved yet.</div>
+            <div style="overflow:auto;margin-top:10px; max-height: 240px">
+              <table>
+                <thead><tr><th>Username</th><th>Role</th></tr></thead>
+                <tbody id="usersTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-panels" style="grid-template-columns: 1.4fr 1fr; margin-top: 14px">
+          <div class="panel">
+            <h3 style="text-align:left">Update Data from Trainer Dashboard</h3>
+            <div class="muted small">Modify member-trainer assignments and member statuses.</div>
+            <div style="overflow:auto; margin-top:10px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Member Name</th>
+                    <th>Assigned Trainer</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="memberAssignTbody"></tbody>
+              </table>
+            </div>
+            <div class="small muted" id="assignMsg" style="margin-top:10px"></div>
+          </div>
+
+          <div class="panel">
+            <h3 style="text-align:left">Quick Actions</h3>
+            <div class="actions" style="flex-direction:column; align-items:stretch">
+              <button class="btn btn-danger btn-small" id="resetBtn">Reset All Passwords</button>
+              <button class="btn btn-primary btn-small" id="backupBtn">Download Backup Data</button>
+            </div>
+            <div class="small muted" id="quickMsg" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/settings.js"></script>
+  </body>
+</html>
+

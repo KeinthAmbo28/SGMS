@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Reports</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">SMARTGYM</div>
+        <nav class="nav">
+          <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
+          <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
+          <a data-nav="trainers" href="/trainers.html"><i class="fa-solid fa-user-tie"></i>Trainers</a>
+          <a data-nav="attendance" href="/attendance.html"><i class="fa-solid fa-clipboard-check"></i>Attendance</a>
+          <a data-nav="payments" href="/payments.html"><i class="fa-solid fa-credit-card"></i>Payments</a>
+          <a data-nav="reports" href="/reports.html"><i class="fa-solid fa-chart-column"></i>Reports</a>
+          <a data-nav="settings" href="/settings.html"><i class="fa-solid fa-gear"></i>Settings</a>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="logout">
+          <button id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="page-title">REPORTS</div>
+          <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
+        </div>
+
+        <div class="grid-panels" style="grid-template-columns: 1fr 1fr">
+          <section class="panel">
+            <h3>Payments by Method (30 days)</h3>
+            <canvas id="methodChart" height="120"></canvas>
+          </section>
+          <section class="panel">
+            <h3 style="text-align:left">Top Members (Check-ins, 30 days)</h3>
+            <div style="overflow:auto; margin-top:10px">
+              <table>
+                <thead>
+                  <tr><th>Member</th><th>Check-ins</th></tr>
+                </thead>
+                <tbody id="topTbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/reports.js"></script>
+  </body>
+</html>
+

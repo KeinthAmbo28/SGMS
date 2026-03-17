@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Members</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">SMARTGYM</div>
+        <nav class="nav">
+          <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
+          <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
+          <a data-nav="trainers" href="/trainers.html"><i class="fa-solid fa-user-tie"></i>Trainers</a>
+          <a data-nav="attendance" href="/attendance.html"><i class="fa-solid fa-clipboard-check"></i>Attendance</a>
+          <a data-nav="payments" href="/payments.html"><i class="fa-solid fa-credit-card"></i>Payments</a>
+          <a data-nav="reports" href="/reports.html"><i class="fa-solid fa-chart-column"></i>Reports</a>
+          <a data-nav="settings" href="/settings.html"><i class="fa-solid fa-gear"></i>Settings</a>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="logout">
+          <button id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="page-title">MEMBERS</div>
+          <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
+        </div>
+
+        <div class="grid-panels" style="grid-template-columns: 1fr 1.2fr">
+          <section class="panel">
+            <h3 style="text-align:left">Add / Update Member</h3>
+            <div class="muted small">Create members and assign trainers.</div>
+
+            <input type="hidden" id="memberId" />
+            <label>Full name</label>
+            <input id="fullName" placeholder="Enter full name" />
+
+            <div class="form-row">
+              <div>
+                <label>Membership type</label>
+                <select id="membershipType">
+                  <option value="monthly">Monthly</option>
+                  <option value="annual">Annual</option>
+                </select>
+              </div>
+              <div>
+                <label>Status</label>
+                <select id="status">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label>Join date</label>
+                <input id="joinDate" type="date" />
+              </div>
+              <div>
+                <label>Assigned trainer</label>
+                <select id="assignedTrainer"></select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label>Phone</label>
+                <input id="phone" placeholder="09xx..." />
+              </div>
+              <div>
+                <label>Email</label>
+                <input id="email" placeholder="name@email.com" />
+              </div>
+            </div>
+
+            <label>Emergency contact</label>
+            <input id="emergency" placeholder="Name / phone" />
+
+            <label>Notes</label>
+            <textarea id="notes" placeholder="Optional"></textarea>
+
+            <div class="actions">
+              <button class="btn btn-primary" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i>Save</button>
+              <button class="btn btn-ghost" id="clearBtn" type="button">Clear</button>
+              <button class="btn btn-danger" id="deleteBtn" type="button" disabled>
+                <i class="fa-solid fa-trash"></i>Delete
+              </button>
+            </div>
+
+            <div class="small muted" id="formMsg" style="margin-top:10px"></div>
+          </section>
+
+          <section class="panel">
+            <h3 style="text-align:left">Member List</h3>
+            <div class="muted small">Click a member to edit.</div>
+            <div style="overflow:auto; margin-top:10px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Trainer</th>
+                    <th>Status</th>
+                    <th>Join</th>
+                  </tr>
+                </thead>
+                <tbody id="membersTbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/members.js"></script>
+  </body>
+</html>
+

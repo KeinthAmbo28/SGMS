@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Attendance</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">SMARTGYM</div>
+        <nav class="nav">
+          <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
+          <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
+          <a data-nav="trainers" href="/trainers.html"><i class="fa-solid fa-user-tie"></i>Trainers</a>
+          <a data-nav="attendance" href="/attendance.html"><i class="fa-solid fa-clipboard-check"></i>Attendance</a>
+          <a data-nav="payments" href="/payments.html"><i class="fa-solid fa-credit-card"></i>Payments</a>
+          <a data-nav="reports" href="/reports.html"><i class="fa-solid fa-chart-column"></i>Reports</a>
+          <a data-nav="settings" href="/settings.html"><i class="fa-solid fa-gear"></i>Settings</a>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="logout">
+          <button id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="page-title">ATTENDANCE</div>
+          <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
+        </div>
+
+        <div class="grid-panels" style="grid-template-columns: 1fr 1.2fr">
+          <section class="panel">
+            <h3 style="text-align:left">Check-in</h3>
+            <div class="muted small">Record a member check-in.</div>
+
+            <label>Member</label>
+            <select id="memberSelect"></select>
+
+            <label>Check-in time (optional)</label>
+            <input id="checkInAt" placeholder="Leave blank for now" />
+            <div class="small muted" style="margin-top:6px">Tip: ISO format like <b>2026-03-17T09:00:00Z</b></div>
+
+            <div class="actions">
+              <button class="btn btn-primary" id="checkInBtn"><i class="fa-solid fa-check"></i>Check in</button>
+            </div>
+            <div class="small muted" id="msg" style="margin-top:10px"></div>
+          </section>
+
+          <section class="panel">
+            <h3 style="text-align:left">Recent Attendance</h3>
+            <div style="overflow:auto; margin-top:10px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/attendance.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartGym | Payments</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">SMARTGYM</div>
+        <nav class="nav">
+          <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
+          <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
+          <a data-nav="trainers" href="/trainers.html"><i class="fa-solid fa-user-tie"></i>Trainers</a>
+          <a data-nav="attendance" href="/attendance.html"><i class="fa-solid fa-clipboard-check"></i>Attendance</a>
+          <a data-nav="payments" href="/payments.html"><i class="fa-solid fa-credit-card"></i>Payments</a>
+          <a data-nav="reports" href="/reports.html"><i class="fa-solid fa-chart-column"></i>Reports</a>
+          <a data-nav="settings" href="/settings.html"><i class="fa-solid fa-gear"></i>Settings</a>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="logout">
+          <button id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="page-title">PAYMENTS</div>
+          <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
+        </div>
+
+        <div class="grid-panels" style="grid-template-columns: 1fr 1.2fr">
+          <section class="panel">
+            <h3 style="text-align:left">Record Payment</h3>
+            <div class="muted small">Store payment transactions for reporting.</div>
+
+            <label>Member</label>
+            <select id="memberSelect"></select>
+
+            <div class="form-row">
+              <div>
+                <label>Amount</label>
+                <input id="amount" type="number" step="0.01" placeholder="0.00" />
+              </div>
+              <div>
+                <label>Method</label>
+                <select id="method">
+                  <option value="cash">Cash</option>
+                  <option value="card">Card</option>
+                  <option value="gcash">GCash</option>
+                  <option value="bank">Bank</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Paid at (optional)</label>
+            <input id="paidAt" placeholder="Leave blank for now" />
+
+            <div class="actions">
+              <button class="btn btn-primary" id="payBtn"><i class="fa-solid fa-plus"></i>Add payment</button>
+            </div>
+            <div class="small muted" id="msg" style="margin-top:10px"></div>
+          </section>
+
+          <section class="panel">
+            <h3 style="text-align:left">Recent Payments</h3>
+            <div style="overflow:auto; margin-top:10px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Paid at</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/payments.js"></script>
+  </body>
+</html>
+
