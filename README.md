@@ -32,6 +32,19 @@ npm start
 - **Username**: `admin`
 - **Password**: `admin123`
 
+## Testing (Unit Tests)
+
+This project uses Node's built-in test runner.
+
+### What’s included
+- `backend/test/accountFreeze.test.js`: tests the account-freeze logic (freeze inactive users, respect `include_never_used`, and never freeze `admin` role users).
+
+### Run tests
+```bash
+cd "smartgym-system/backend"
+node --test test/accountFreeze.test.js
+
+
 ## What’s included
 
 - **Admin Dashboard** (`adminDashboard.html`): KPI cards + Attendance line chart + Membership donut + Payments bar + recent activities
