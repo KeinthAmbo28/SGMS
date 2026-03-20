@@ -18,7 +18,7 @@ async function loadUsersIntoSelect() {
   for (const u of users) {
     const opt = document.createElement("option");
     opt.value = u.id;
-    opt.textContent = `${u.username} (${u.role})`;
+    opt.textContent = `${u.username} (${u.role}, ${u.status || "active"})`;
     opt.dataset.username = u.username;
     opt.dataset.role = u.role;
     el("userSelect").appendChild(opt);
@@ -34,7 +34,7 @@ async function retrieveUsers() {
     tbody.innerHTML = "";
     for (const u of users) {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td><b>${u.username}</b></td><td>${u.role}</td>`;
+      tr.innerHTML = `<td><b>${u.username}</b></td><td>${u.role}</td><td>${u.status || "active"}</td>`;
       tbody.appendChild(tr);
     }
     setMsg("retrieveMsg", `Retrieved ${users.length} users.`);
@@ -98,6 +98,96 @@ async function deleteUser() {
     setMsg("userMsg", "User deleted.");
     el("userSelect").value = "";
     fillUserForm(null);
+    await loadUsersIntoSelect();
+    await retrieveUsers();
+  } catch (e) {
+    setMsg("userMsg", e.message);
+  }
+}
+
+async function loadFreezeSettings() {
+  setMsg("freezeMsg", "Loading...");
+  try {
+    const { settings } = await api("/api/admin/account-freeze/settings");
+    el("freezeEnabled").checked = !!settings.enabled;
+    el("freezeDays").value = settings.inactive_days ?? 30;
+    el("freezeNeverUsed").checked = !!settings.include_never_used;
+    setMsg("freezeMsg", "");
+  } catch (e) {
+    setMsg("freezeMsg", e.message);
+  }
+}
+
+async function saveFreezeSettings() {
+  setMsg("freezeMsg", "Saving...");
+  try {
+    const enabled = el("freezeEnabled").checked;
+    const inactiveDays = Number(el("freezeDays").value || 0);
+    const includeNeverUsed = el("freezeNeverUsed").checked;
+
+    await api("/api/admin/account-freeze/settings", {
+      method: "PUT",
+      body: {
+        enabled,
+        inactive_days: inactiveDays,
+        include_never_used: includeNeverUsed
+      }
+    });
+
+    setMsg("freezeMsg", "Freeze settings saved.");
+  } catch (e) {
+    setMsg("freezeMsg", e.message);
+  }
+}
+
+async function freezeNow() {
+  setMsg("freezeMsg", "Freezing inactive accounts...");
+  try {
+    const data = await api("/api/admin/account-freeze/run", { method: "POST" });
+    if (!data?.ran) {
+      setMsg("freezeMsg", "No accounts were frozen. Check inactivity settings.");
+      return;
+    }
+
+    setMsg("freezeMsg", `Frozen ${data.frozenCount} user(s).`);
+    await loadUsersIntoSelect();
+    await retrieveUsers();
+  } catch (e) {
+    setMsg("freezeMsg", e.message);
+  }
+}
+
+async function freezeSelectedUser() {
+  setMsg("userMsg", "");
+  const id = el("userSelect").value;
+  if (!id) {
+    setMsg("userMsg", "Select an existing user to freeze.");
+    return;
+  }
+  if (!confirm("Freeze this user account? (They will be unable to log in until reactivated.)")) return;
+
+  try {
+    await api(`/api/admin/users/${id}/freeze`, { method: "POST" });
+    setMsg("userMsg", "User frozen.");
+    await loadUsersIntoSelect();
+    await retrieveUsers();
+  } catch (e) {
+    setMsg("userMsg", e.message);
+  }
+}
+
+async function reactivateSelectedUser() {
+  setMsg("userMsg", "");
+  const id = el("userSelect").value;
+  if (!id) {
+    setMsg("userMsg", "Select an existing user to reactivate.");
+    return;
+  }
+  if (!confirm("Reactivate this frozen user account?")) return;
+
+  try {
+    await api(`/api/admin/users/${id}/reactivate`, { method: "POST" });
+    setMsg("userMsg", "User reactivated.");
     await loadUsersIntoSelect();
     await retrieveUsers();
   } catch (e) {
@@ -203,8 +293,13 @@ async function main() {
   el("createBtn").addEventListener("click", createUser);
   el("updateBtn").addEventListener("click", updateUser);
   el("deleteBtn").addEventListener("click", deleteUser);
+  el("freezeUserBtn").addEventListener("click", freezeSelectedUser);
+  el("reactivateUserBtn").addEventListener("click", reactivateSelectedUser);
   el("resetBtn").addEventListener("click", resetPasswords);
   el("backupBtn").addEventListener("click", downloadBackup);
+
+  el("saveFreezeSettingsBtn").addEventListener("click", saveFreezeSettings);
+  el("freezeNowBtn").addEventListener("click", freezeNow);
 
   el("userSelect").addEventListener("change", async () => {
     const id = el("userSelect").value;
@@ -216,6 +311,8 @@ async function main() {
     const u = users.find((x) => x.id === id);
     fillUserForm(u);
   });
+
+  await loadFreezeSettings();
 }
 
 main();

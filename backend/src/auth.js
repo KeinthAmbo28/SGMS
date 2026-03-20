@@ -16,8 +16,10 @@ export function requireAuth(db) {
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     try {
       const payload = jwt.verify(token, config.jwtSecret);
-      const user = db.prepare("SELECT id, username, role FROM users WHERE id=?").get(payload.sub);
+      const user = db.prepare("SELECT id, username, role, status FROM users WHERE id=?").get(payload.sub);
       if (!user) return res.status(401).json({ error: "Unauthorized" });
+      if (user.status === "frozen") return res.status(403).json({ error: "Account frozen" });
+      db.prepare("UPDATE users SET last_active_at=datetime('now') WHERE id=?").run(user.id);
       req.user = user;
       next();
     } catch {

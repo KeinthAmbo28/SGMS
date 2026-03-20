@@ -52,3 +52,9 @@ export const userUpsertSchema = z.object({
   role: z.enum(["admin", "trainer", "staff"])
 });
 
+export const accountFreezeSettingsSchema = z.object({
+  enabled: z.boolean().optional().default(false),
+  inactive_days: z.number().int().positive().max(3650).optional().default(30),
+  include_never_used: z.boolean().optional().default(false)
+});
+

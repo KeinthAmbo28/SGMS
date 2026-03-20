@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { signToken, requireRole } from "./auth.js";
 import {
   attendanceCreateSchema,
+  accountFreezeSettingsSchema,
   loginSchema,
   memberRegisterSchema,
   memberCreateSchema,
@@ -10,6 +11,8 @@ import {
   trainerCreateSchema,
   userUpsertSchema
 } from "./validators.js";
+
+import { getAccountFreezeSettings, runAccountFreeze, updateAccountFreezeSettings } from "./accountFreeze.js";
 
 function ok(res, data) {
   return res.json(data);
@@ -27,8 +30,10 @@ export function registerRoutes(app, db, requireAuth) {
     if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
     const user = db.prepare("SELECT * FROM users WHERE username=?").get(parsed.data.username);
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (user.status === "frozen") return res.status(403).json({ error: "Account frozen" });
     const passOk = bcrypt.compareSync(parsed.data.password, user.password_hash);
     if (!passOk) return res.status(401).json({ error: "Invalid credentials" });
+    db.prepare("UPDATE users SET last_active_at=datetime('now') WHERE id=?").run(user.id);
     const token = signToken(user);
     return ok(res, { token, user: { id: user.id, username: user.username, role: user.role } });
   });
@@ -64,6 +69,7 @@ export function registerRoutes(app, db, requireAuth) {
     db.prepare(
       "INSERT INTO users (id, username, password_hash, role, member_id) VALUES (?,?,?,?,?)"
     ).run(userId, parsed.data.username, passwordHash, "member", memberId);
+    db.prepare("UPDATE users SET last_active_at=datetime('now') WHERE id=?").run(userId);
 
     const user = { id: userId, username: parsed.data.username, role: "member" };
     const token = signToken(user);
@@ -75,8 +81,10 @@ export function registerRoutes(app, db, requireAuth) {
     if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
     const user = db.prepare("SELECT * FROM users WHERE username=?").get(parsed.data.username);
     if (!user || user.role !== "member") return res.status(401).json({ error: "Invalid credentials" });
+    if (user.status === "frozen") return res.status(403).json({ error: "Account frozen" });
     const passOk = bcrypt.compareSync(parsed.data.password, user.password_hash);
     if (!passOk) return res.status(401).json({ error: "Invalid credentials" });
+    db.prepare("UPDATE users SET last_active_at=datetime('now') WHERE id=?").run(user.id);
     const token = signToken(user);
     return ok(res, { token, user: { id: user.id, username: user.username, role: user.role } });
   });
@@ -185,7 +193,8 @@ export function registerRoutes(app, db, requireAuth) {
   app.get("/api/dashboard/summary", requireAuth, (req, res) => {
     const members = db.prepare("SELECT COUNT(*) as c FROM members WHERE status='active'").get().c;
     const trainers = db.prepare("SELECT COUNT(*) as c FROM trainers WHERE status='active'").get().c;
-    const classesToday = 5;
+    // No dedicated "classes" table exists; we treat "classes today" as total check-ins today.
+    const classesToday = db.prepare("SELECT COUNT(*) as c FROM attendance WHERE date(check_in_at) = date('now')").get().c;
     const revenueRow = db
       .prepare(
         "SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE paid_at >= datetime('now','-30 days')"
@@ -444,7 +453,9 @@ export function registerRoutes(app, db, requireAuth) {
 
   // Settings / Admin actions
   app.get("/api/admin/users", requireAuth, requireRole("admin"), (req, res) => {
-    const users = db.prepare("SELECT id, username, role, created_at FROM users ORDER BY created_at DESC").all();
+    const users = db
+      .prepare("SELECT id, username, role, status, last_active_at, frozen_at, created_at FROM users ORDER BY created_at DESC")
+      .all();
     ok(res, { users });
   });
 
@@ -480,6 +491,44 @@ export function registerRoutes(app, db, requireAuth) {
     ok(res, { ok: true });
   });
 
+  // Account freezing (inactive -> frozen, then admin can reactivate)
+  app.get("/api/admin/account-freeze/settings", requireAuth, requireRole("admin"), (req, res) => {
+    ok(res, { settings: getAccountFreezeSettings(db) });
+  });
+
+  app.put("/api/admin/account-freeze/settings", requireAuth, requireRole("admin"), (req, res) => {
+    const parsed = accountFreezeSettingsSchema.safeParse(req.body);
+    if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
+    updateAccountFreezeSettings(db, parsed.data);
+    ok(res, { ok: true, settings: getAccountFreezeSettings(db) });
+  });
+
+  app.post("/api/admin/account-freeze/run", requireAuth, requireRole("admin"), (req, res) => {
+    // `force: true` so the admin "Freeze Now" button works even if auto-freeze is disabled.
+    const result = runAccountFreeze(db, { force: true });
+    ok(res, { ...result, settings: getAccountFreezeSettings(db) });
+  });
+
+  app.post("/api/admin/users/:id/freeze", requireAuth, requireRole("admin"), (req, res) => {
+    const existing = db.prepare("SELECT id, role, status FROM users WHERE id=?").get(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Not found" });
+    if (existing.role === "admin") return res.status(400).json({ error: "Cannot freeze admin users" });
+    if (existing.id === req.user.id) return res.status(400).json({ error: "You cannot freeze your own session" });
+    if (existing.status === "frozen") return ok(res, { ok: true, alreadyFrozen: true });
+
+    db.prepare("UPDATE users SET status='frozen', frozen_at=datetime('now') WHERE id=?").run(req.params.id);
+    ok(res, { ok: true });
+  });
+
+  app.post("/api/admin/users/:id/reactivate", requireAuth, requireRole("admin"), (req, res) => {
+    const existing = db.prepare("SELECT id, role, status FROM users WHERE id=?").get(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Not found" });
+    if (existing.status !== "frozen") return ok(res, { ok: true, alreadyActive: true });
+
+    db.prepare("UPDATE users SET status='active', frozen_at=NULL, last_active_at=datetime('now') WHERE id=?").run(req.params.id);
+    ok(res, { ok: true });
+  });
+
   app.post("/api/admin/reset-all-passwords", requireAuth, requireRole("admin"), (req, res) => {
     const users = db.prepare("SELECT id FROM users").all();
     const setPass = db.prepare("UPDATE users SET password_hash=? WHERE id=?");
@@ -496,7 +545,9 @@ export function registerRoutes(app, db, requireAuth) {
   });
 
   app.get("/api/admin/backup", requireAuth, requireRole("admin"), (req, res) => {
-    const users = db.prepare("SELECT id, username, role, created_at FROM users").all();
+    const users = db
+      .prepare("SELECT id, username, role, status, last_active_at, frozen_at, created_at FROM users")
+      .all();
     const trainers = db.prepare("SELECT * FROM trainers").all();
     const members = db.prepare("SELECT * FROM members").all();
     const attendance = db.prepare("SELECT * FROM attendance").all();

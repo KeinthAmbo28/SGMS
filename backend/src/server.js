@@ -10,6 +10,7 @@ import { openDb } from "./db/connection.js";
 import { initDb } from "./db/init.js";
 import { requireAuth as requireAuthFactory } from "./auth.js";
 import { registerRoutes } from "./routes.js";
+import { runAccountFreeze } from "./accountFreeze.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,15 @@ app.use(morgan("dev"));
 
 const requireAuth = requireAuthFactory(db);
 registerRoutes(app, db, requireAuth);
+
+// Background auto-freeze runner (optional; controlled by `account_freeze_settings.enabled`)
+setInterval(() => {
+  try {
+    runAccountFreeze(db);
+  } catch (e) {
+    console.error("Auto-freeze runner failed:", e?.message || e);
+  }
+}, 6 * 60 * 60 * 1000); // every 6 hours
 
 // Serve the new UI
 const frontendPath = path.resolve(__dirname, "..", "..", "frontend");

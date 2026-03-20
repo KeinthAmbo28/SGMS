@@ -21,6 +21,16 @@ function usersAllowsMemberRole(db) {
 }
 
 function migrateUsersForMemberPortal(db) {
+  if (!hasColumn(db, "users", "status")) {
+    db.exec("ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'");
+  }
+  if (!hasColumn(db, "users", "last_active_at")) {
+    db.exec("ALTER TABLE users ADD COLUMN last_active_at TEXT");
+  }
+  if (!hasColumn(db, "users", "frozen_at")) {
+    db.exec("ALTER TABLE users ADD COLUMN frozen_at TEXT");
+  }
+
   if (hasColumn(db, "users", "member_id") && usersAllowsMemberRole(db)) return;
 
   db.exec(`
@@ -33,12 +43,24 @@ function migrateUsersForMemberPortal(db) {
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('admin','trainer','staff','member')),
       member_id TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      last_active_at TEXT,
+      frozen_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE SET NULL
     );
 
-    INSERT INTO users_new (id, username, password_hash, role, member_id, created_at)
-    SELECT id, username, password_hash, role, NULL as member_id, created_at
+    INSERT INTO users_new (id, username, password_hash, role, member_id, status, last_active_at, frozen_at, created_at)
+    SELECT
+      id,
+      username,
+      password_hash,
+      role,
+      NULL as member_id,
+      COALESCE(status, 'active') as status,
+      last_active_at,
+      frozen_at,
+      created_at
     FROM users;
 
     DROP TABLE users;
@@ -65,6 +87,15 @@ export function initDb(db) {
   // Lightweight migrations for existing sqlite file (must run after base tables exist)
   migrateUsersForMemberPortal(db);
   migrateAttendanceForCheckout(db);
+
+  // Create the index only after migration adds the column.
+  db.exec("CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at)");
+
+  // Ensure freeze settings row exists (single-row settings table).
+  const settingsExists = db.prepare("SELECT id FROM account_freeze_settings WHERE id=1").get();
+  if (!settingsExists) {
+    db.prepare("INSERT INTO account_freeze_settings (id) VALUES (1)").run();
+  }
 
   const admin = db.prepare("SELECT * FROM users WHERE username=?").get("admin");
   if (!admin) {

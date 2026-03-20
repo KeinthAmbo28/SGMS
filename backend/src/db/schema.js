@@ -5,6 +5,9 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL CHECK(role IN ('admin','trainer','staff','member')),
   member_id TEXT,
+  status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','frozen')),
+  last_active_at TEXT,
+  frozen_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -31,6 +34,15 @@ CREATE TABLE IF NOT EXISTS members (
   notes TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY(assigned_trainer_id) REFERENCES trainers(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS account_freeze_settings (
+  id INTEGER PRIMARY KEY CHECK(id=1),
+  enabled INTEGER NOT NULL DEFAULT 0,
+  inactive_days INTEGER NOT NULL DEFAULT 30,
+  include_never_used INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  last_run_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS attendance (
