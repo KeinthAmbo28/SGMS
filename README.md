@@ -3,7 +3,7 @@
 This is a **fully functional** Smart Gym Management System with:
 - **Backend**: Node.js + Express API + JWT auth
 - **Database**: SQLite (auto-creates + seeds on first run)
-- **Frontend**: Static HTML/CSS/JS UI matching your provided screenshots
+- **Frontend**: Static HTML/CSS/JS UI 
 - **Member Portal**: Members can register/login, check-in/out, and select an available trainer
 
 ## Run it
