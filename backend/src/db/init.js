@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import bcrypt from "bcryptjs";
 import { schemaSql } from "./schema.js";
 
@@ -82,8 +81,8 @@ export async function initDb(db) {
   if (adminRows.length === 0) {
     const passwordHash = await bcrypt.hash("admin123", 10);
     await db.execute(
-      "INSERT INTO users (id, username, password_hash, role) VALUES (?, ?, ?, ?)",
-      [nanoid(), "admin", passwordHash, "admin"]
+      "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+      ["admin", passwordHash, "admin"]
     );
   }
 

@@ -1,28 +1,34 @@
 import mysql from "mysql2/promise";
 import { config } from "../config.js";
 
-let dbConnection = null;
+let dbPool = null;
 
 export async function openDb() {
-  if (!dbConnection) {
+  if (!dbPool) {
     // First connect without database to create it if needed
     const tempConfig = { ...config.db };
     delete tempConfig.database;
+    delete tempConfig.connectionLimit; // Remove pool-specific config for temp connection
     const tempConnection = await mysql.createConnection(tempConfig);
-    await tempConnection.execute(`DROP DATABASE IF EXISTS ${config.db.database}`);
-    await tempConnection.execute(`CREATE DATABASE ${config.db.database}`);
+
+    // Check if database exists, create it only if it doesn't exist
+    const [rows] = await tempConnection.execute(`SHOW DATABASES LIKE '${config.db.database}'`);
+    if (rows.length === 0) {
+      // Database doesn't exist, create it
+      await tempConnection.execute(`CREATE DATABASE ${config.db.database}`);
+    }
     await tempConnection.end();
 
-    // Now connect to the database
-    dbConnection = await mysql.createConnection(config.db);
+    // Now create a connection pool for better performance
+    dbPool = mysql.createPool(config.db);
   }
-  return dbConnection;
+  return dbPool;
 }
 
 export async function closeDb() {
-  if (dbConnection) {
-    await dbConnection.end();
-    dbConnection = null;
+  if (dbPool) {
+    await dbPool.end();
+    dbPool = null;
   }
 }
 

@@ -16,7 +16,10 @@ export const config = {
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "smartgym",
-    port: Number(process.env.DB_PORT) || 3306
+    port: Number(process.env.DB_PORT) || 3306,
+    // Connection pool settings for better performance
+    connectionLimit: 10,
+    connectTimeout: 60000
   }
 };
 

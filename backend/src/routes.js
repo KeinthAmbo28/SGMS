@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import bcrypt from "bcryptjs";
 import { signToken, requireRole } from "./auth.js";
 import {
@@ -47,24 +46,23 @@ export function registerRoutes(app, db, requireAuth) {
     const [existsRows] = await db.execute("SELECT id FROM users WHERE username=?", [parsed.data.username]);
     if (existsRows.length > 0) return res.status(409).json({ error: "Username already exists" });
 
-    const memberId = nanoid();
     const join_date = new Date().toISOString().slice(0, 10);
-    await db.execute(
+    const [memberResult] = await db.execute(
       `
       INSERT INTO members
-      (id, full_name, membership_type, join_date, status, assigned_trainer_id, phone, email, emergency_contact, notes)
+      (full_name, membership_type, join_date, status, assigned_trainer_id, phone, email, emergency_contact, notes)
       VALUES
-      (?, ?, ?, ?, 'active', NULL, ?, ?, NULL, NULL)
+      (?, ?, ?, 'active', NULL, ?, ?, NULL, NULL)
     `,
-      [memberId, parsed.data.full_name, parsed.data.membership_type, join_date, parsed.data.phone ?? null, parsed.data.email ?? null]
+      [parsed.data.full_name, parsed.data.membership_type, join_date, parsed.data.phone ?? null, parsed.data.email ?? null]
     );
+    const memberId = memberResult.insertId;
 
-    const userId = nanoid();
-    const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-    await db.execute(
-      "INSERT INTO users (id, username, password_hash, role, member_id) VALUES (?, ?, ?, ?, ?)",
-      [userId, parsed.data.username, passwordHash, "member", memberId]
+    const [userResult] = await db.execute(
+      "INSERT INTO users (username, password_hash, role, member_id) VALUES (?, ?, ?, ?)",
+      [parsed.data.username, passwordHash, "member", memberId]
     );
+    const userId = userResult.insertId;
     await db.execute("UPDATE users SET last_active_at=NOW() WHERE id=?", [userId]);
 
     const user = { id: userId, username: parsed.data.username, role: "member" };
@@ -150,13 +148,11 @@ export function registerRoutes(app, db, requireAuth) {
       [user.member_id]
     );
     if (openRows.length > 0) return res.status(409).json({ error: "Already checked in. Please check out first." });
-    const id = nanoid();
-    await db.execute("INSERT INTO attendance (id, member_id, check_in_at, check_out_at) VALUES (?, ?, ?, NULL)", [
-      id,
+    const [result] = await db.execute("INSERT INTO attendance (member_id, check_in_at, check_out_at) VALUES (?, ?, NULL)", [
       user.member_id,
       new Date().toISOString()
     ]);
-    ok(res, { id });
+    ok(res, { id: result.insertId });
   });
 
   app.post("/api/member/check-out", requireAuth, requireRole("member"), async (req, res) => {
@@ -330,12 +326,11 @@ export function registerRoutes(app, db, requireAuth) {
   app.post("/api/trainers", requireAuth, async (req, res) => {
     const parsed = trainerCreateSchema.safeParse(req.body);
     if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
-    const id = nanoid();
-    await db.execute(
-      "INSERT INTO trainers (id, full_name, specialty, phone, email, status) VALUES (?, ?, ?, ?, ?, ?)",
-      [id, parsed.data.full_name, parsed.data.specialty, parsed.data.phone, parsed.data.email, parsed.data.status]
+    const [result] = await db.execute(
+      "INSERT INTO trainers (full_name, specialty, phone, email, status) VALUES (?, ?, ?, ?, ?)",
+      [parsed.data.full_name, parsed.data.specialty, parsed.data.phone, parsed.data.email, parsed.data.status]
     );
-    ok(res, { id });
+    ok(res, { id: result.insertId });
   });
 
   app.put("/api/trainers/:id", requireAuth, async (req, res) => {
@@ -401,16 +396,14 @@ export function registerRoutes(app, db, requireAuth) {
   app.post("/api/payments", requireAuth, async (req, res) => {
     const parsed = paymentCreateSchema.safeParse(req.body);
     if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
-    const id = nanoid();
     const paid_at = parsed.data.paid_at || new Date().toISOString();
-    await db.execute("INSERT INTO payments (id, member_id, amount, method, paid_at) VALUES (?, ?, ?, ?, ?)", [
-      id,
+    const [result] = await db.execute("INSERT INTO payments (member_id, amount, method, paid_at) VALUES (?, ?, ?, ?)", [
       parsed.data.member_id,
       parsed.data.amount,
       parsed.data.method,
       paid_at
     ]);
-    ok(res, { id });
+    ok(res, { id: result.insertId });
   });
 
   // Reports
@@ -447,15 +440,13 @@ export function registerRoutes(app, db, requireAuth) {
     if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
     const [existingRows] = await db.execute("SELECT * FROM users WHERE username=?", [parsed.data.username]);
     if (existingRows.length > 0) return res.status(409).json({ error: "Username already exists" });
-    const id = nanoid();
     const passwordHash = await bcrypt.hash(parsed.data.password || "changeme123", 10);
-    await db.execute("INSERT INTO users (id, username, password_hash, role) VALUES (?, ?, ?, ?)", [
-      id,
+    const [result] = await db.execute("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)", [
       parsed.data.username,
       passwordHash,
       parsed.data.role
     ]);
-    ok(res, { id });
+    ok(res, { id: result.insertId });
   });
 
   app.put("/api/admin/users/:id", requireAuth, requireRole("admin"), async (req, res) => {
@@ -525,7 +516,7 @@ export function registerRoutes(app, db, requireAuth) {
     const hash = await bcrypt.hash("admin123", 10);
     for (const u of users) {
       await db.execute("UPDATE users SET password_hash=? WHERE id=?", [hash, u.id]);
-      await db.execute("INSERT INTO password_resets (id, user_id) VALUES (?, ?)", [nanoid(), u.id]);
+      const [result] = await db.execute("INSERT INTO password_resets (user_id) VALUES (?)", [u.id]);
     }
     ok(res, { ok: true, newPassword: "admin123" });
   });

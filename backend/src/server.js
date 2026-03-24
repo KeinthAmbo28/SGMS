@@ -16,8 +16,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
+  console.time('Database Setup');
+  console.log('🔄 Connecting to database...');
   const db = await openDb();
+  console.log('✅ Database connected');
+
+  console.log('🔄 Initializing database...');
   await initDb(db);
+  console.timeEnd('Database Setup');
+  console.log('✅ Database initialized');
 
   const app = express();
   app.use(helmet({ contentSecurityPolicy: false }));

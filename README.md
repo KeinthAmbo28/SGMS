@@ -86,13 +86,15 @@ node --test test/accountFreeze.test.js
 
 ## Database
 
-The application automatically creates all necessary tables and relationships in the MySQL database on first run. The database includes:
+The application automatically creates all necessary MySQL tables and relationships on first run. The database includes:
 
-- `users` - User accounts with roles (admin/member)
-- `members` - Member profiles linked to users
-- `trainers` - Trainer information
-- `attendance` - Check-in/check-out records with precise timestamps
-- `payments` - Payment records
+- `users` - User accounts with roles (admin/member) - **Integer auto-incrementing IDs**
+- `members` - Member profiles linked to users - **Integer auto-incrementing IDs**
+- `trainers` - Trainer information - **Integer auto-incrementing IDs**
+- `attendance` - Check-in/check-out records with precise timestamps - **Integer auto-incrementing IDs**
+- `payments` - Payment records - **Integer auto-incrementing IDs**
+
+**Note**: All IDs are now simple integers (1, 2, 3...) instead of random strings, making data management in phpMyAdmin much easier.
 - `settings` - Application settings
 
 ## Notes
