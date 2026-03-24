@@ -15,38 +15,41 @@ import { runAccountFreeze } from "./accountFreeze.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const db = openDb();
-initDb(db);
+async function startServer() {
+  const db = await openDb();
+  await initDb(db);
 
-const app = express();
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
-app.use(morgan("dev"));
+  const app = express();
+  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(cors());
+  app.use(express.json({ limit: "1mb" }));
+  app.use(morgan("dev"));
 
-const requireAuth = requireAuthFactory(db);
-registerRoutes(app, db, requireAuth);
+  const requireAuth = requireAuthFactory(db);
+  registerRoutes(app, db, requireAuth);
 
-// Background auto-freeze runner (optional; controlled by `account_freeze_settings.enabled`)
-setInterval(() => {
-  try {
-    runAccountFreeze(db);
-  } catch (e) {
-    console.error("Auto-freeze runner failed:", e?.message || e);
-  }
-}, 6 * 60 * 60 * 1000); // every 6 hours
+  // Background auto-freeze runner (optional; controlled by `account_freeze_settings.enabled`)
+  setInterval(() => {
+    try {
+      runAccountFreeze(db);
+    } catch (e) {
+      console.error("Auto-freeze runner failed:", e?.message || e);
+    }
+  }, 6 * 60 * 60 * 1000); // every 6 hours
 
-// Serve the new UI
-const frontendPath = path.resolve(__dirname, "..", "..", "frontend");
-app.use("/", express.static(frontendPath));
+  // Serve the new UI
+  const frontendPath = path.resolve(__dirname, "..", "..", "frontend");
+  app.use("/", express.static(frontendPath));
 
-// SPA-ish fallback: route unknown paths to login
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(frontendPath, "login.html"));
-});
+  // SPA-ish fallback: route unknown paths to login
+  app.get(/.*/, (req, res) => {
+    res.sendFile(path.join(frontendPath, "login.html"));
+  });
 
-app.listen(config.port, () => {
-  console.log(`SmartGym running on http://localhost:${config.port}`);
-  console.log(`Login: admin / admin123`);
-});
+  app.listen(config.port, () => {
+    console.log(`SmartGym running on http://localhost:${config.port}`);
+    console.log(`Login: admin / admin123`);
+  });
+}
 
+startServer().catch(console.error);

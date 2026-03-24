@@ -10,16 +10,17 @@ export function signToken(user) {
 }
 
 export function requireAuth(db) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const auth = req.headers.authorization || "";
     const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     try {
       const payload = jwt.verify(token, config.jwtSecret);
-      const user = db.prepare("SELECT id, username, role, status FROM users WHERE id=?").get(payload.sub);
+      const [userRows] = await db.execute("SELECT id, username, role, status FROM users WHERE id=?", [payload.sub]);
+      const user = userRows[0];
       if (!user) return res.status(401).json({ error: "Unauthorized" });
       if (user.status === "frozen") return res.status(403).json({ error: "Account frozen" });
-      db.prepare("UPDATE users SET last_active_at=datetime('now') WHERE id=?").run(user.id);
+      await db.execute("UPDATE users SET last_active_at=NOW() WHERE id=?", [user.id]);
       req.user = user;
       next();
     } catch {

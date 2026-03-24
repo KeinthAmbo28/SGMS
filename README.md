@@ -1,28 +1,48 @@
-# Smart Gym Management System (new build)
+# Smart Gym Management System (SGMS)
 
 This is a **fully functional** Smart Gym Management System with:
-- **Backend**: Node.js + Express API + JWT auth
-- **Database**: SQLite (auto-creates + seeds on first run)
-- **Frontend**: Static HTML/CSS/JS UI 
+- **Backend**: Node.js + Express API + JWT authentication
+- **Database**: MySQL with phpMyAdmin support (auto-creates database and tables on first run)
+- **Frontend**: Static HTML/CSS/JS UI
 - **Member Portal**: Members can register/login, check-in/out, and select an available trainer
+
+## Prerequisites
+
+- Node.js (v14 or higher)
+- MySQL Server
+- phpMyAdmin (optional, for database management)
+
+## Setup
+
+1. **Install MySQL Server** (if not already installed):
+   - Download and install MySQL from https://dev.mysql.com/downloads/mysql/
+   - Or use XAMPP/WAMP which includes MySQL and phpMyAdmin
+
+2. **Create the database**:
+   - Open phpMyAdmin or MySQL command line
+   - Run: `CREATE DATABASE smartgym;`
+
+3. **Configure database connection** (optional):
+   - Update `backend/src/config.js` if your MySQL credentials differ from defaults
+   - Default config: host: 'localhost', user: 'root', password: '', database: 'smartgym', port: 3306
 
 ## Run it
 
-1) Install dependencies:
+1. Install dependencies:
 
 ```bash
-cd "smartgym-system/backend"
+cd backend
 npm install
 ```
 
-2) Start the server:
+2. Start the server:
 
 ```bash
-cd "smartgym-system/backend"
+cd backend
 npm start
 ```
 
-3) Open in browser:
+3. Open in browser:
 
 - **Admin login**: `http://localhost:5050/login.html`
 - **Member login**: `http://localhost:5050/memberLogin.html`
@@ -36,21 +56,22 @@ npm start
 
 This project uses Node's built-in test runner.
 
-### What’s included
+### What's included
 - `backend/test/accountFreeze.test.js`: tests the account-freeze logic (freeze inactive users, respect `include_never_used`, and never freeze `admin` role users).
 
 ### Run tests
 ```bash
-cd "smartgym-system/backend"
+cd backend
 node --test test/accountFreeze.test.js
+```
 
+## Features
 
-## What’s included
-
-- **Admin Dashboard** (`adminDashboard.html`): KPI cards + Attendance line chart + Membership donut + Payments bar + recent activities
+### Admin Dashboard
+- **Dashboard** (`adminDashboard.html`): KPI cards + Attendance line chart + Membership donut + Payments bar + recent activities
 - **Members** (`members.html`): create/update/delete + assign trainer
 - **Trainers** (`trainers.html`): create/update/delete
-- **Attendance** (`attendance.html`): record check-ins + view recent (includes check-out column)
+- **Attendance** (`attendance.html`): record check-ins + view recent (includes check-out column with exact timestamps)
 - **Payments** (`payments.html`): record payments + view recent
 - **Reports** (`reports.html`): payments by method + top members by check-ins
 - **Settings** (`settings.html`, admin): manage users, retrieve users, update member assignments/status, reset all passwords, download backup JSON
@@ -59,18 +80,25 @@ node --test test/accountFreeze.test.js
 
 - **Register / Login** (`memberLogin.html`): members create an account and log in
 - **Member Dashboard** (`memberDashboard.html`):
-  - Check-in / check-out (saved to attendance; visible on admin Attendance page)
+  - Check-in / check-out (saved to attendance with exact timestamps; visible on admin Attendance page)
   - Select an available trainer (assigns trainer to the member record)
-  - View personal attendance history
+  - View personal attendance history with precise time formatting
 
-## Database file
+## Database
 
-SQLite file is created here on first run:
+The application automatically creates all necessary tables and relationships in the MySQL database on first run. The database includes:
 
-- `backend/src/db/smartgym.sqlite`
+- `users` - User accounts with roles (admin/member)
+- `members` - Member profiles linked to users
+- `trainers` - Trainer information
+- `attendance` - Check-in/check-out records with precise timestamps
+- `payments` - Payment records
+- `settings` - Application settings
 
 ## Notes
 
 - Member accounts are stored in `users` with role `member`, linked to `members` via `member_id`.
+- Attendance records now show exact timestamps including seconds (e.g., "3:05:23 PM").
 - If you change the backend port, set `PORT` in your environment before starting.
+- Database connection uses mysql2 driver with connection pooling for better performance.
 

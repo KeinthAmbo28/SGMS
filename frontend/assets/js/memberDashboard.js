@@ -11,10 +11,17 @@ function renderAttendance(rows) {
   tbody.innerHTML = "";
   for (const r of rows) {
     const open = !r.check_out_at;
+    const checkInDate = new Date(r.check_in_at);
+    const checkOutDate = r.check_out_at ? new Date(r.check_out_at) : null;
+
+    // Format date and time with seconds for exact precision
+    const checkInFormatted = `${checkInDate.toLocaleDateString()} ${checkInDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}`;
+    const checkOutFormatted = checkOutDate ? `${checkOutDate.toLocaleDateString()} ${checkOutDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}` : "-";
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${new Date(r.check_in_at).toLocaleString()}</td>
-      <td>${r.check_out_at ? new Date(r.check_out_at).toLocaleString() : "-"}</td>
+      <td>${checkInFormatted}</td>
+      <td>${checkOutFormatted}</td>
       <td><span class="tag ${open ? "warn" : "good"}">${open ? "Checked in" : "Completed"}</span></td>
     `;
     tbody.appendChild(tr);

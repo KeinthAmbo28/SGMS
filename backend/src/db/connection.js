@@ -1,14 +1,28 @@
-import Database from "better-sqlite3";
-import fs from "node:fs";
-import path from "node:path";
+import mysql from "mysql2/promise";
 import { config } from "../config.js";
 
-export function openDb() {
-  const dir = path.dirname(config.dbPath);
-  fs.mkdirSync(dir, { recursive: true });
-  const db = new Database(config.dbPath);
-  db.pragma("journal_mode = WAL");
-  db.pragma("foreign_keys = ON");
-  return db;
+let dbConnection = null;
+
+export async function openDb() {
+  if (!dbConnection) {
+    // First connect without database to create it if needed
+    const tempConfig = { ...config.db };
+    delete tempConfig.database;
+    const tempConnection = await mysql.createConnection(tempConfig);
+    await tempConnection.execute(`DROP DATABASE IF EXISTS ${config.db.database}`);
+    await tempConnection.execute(`CREATE DATABASE ${config.db.database}`);
+    await tempConnection.end();
+
+    // Now connect to the database
+    dbConnection = await mysql.createConnection(config.db);
+  }
+  return dbConnection;
+}
+
+export async function closeDb() {
+  if (dbConnection) {
+    await dbConnection.end();
+    dbConnection = null;
+  }
 }
 

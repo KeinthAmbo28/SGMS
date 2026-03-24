@@ -18,11 +18,18 @@ function render(attendance) {
   const tbody = el("tbody");
   tbody.innerHTML = "";
   for (const a of attendance) {
+    const checkInDate = new Date(a.check_in_at);
+    const checkOutDate = a.check_out_at ? new Date(a.check_out_at) : null;
+
+    // Format date and time with seconds for exact precision
+    const checkInFormatted = `${checkInDate.toLocaleDateString()} ${checkInDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}`;
+    const checkOutFormatted = checkOutDate ? `${checkOutDate.toLocaleDateString()} ${checkOutDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}` : "-";
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><b>${a.member_name}</b></td>
-      <td>${new Date(a.check_in_at).toLocaleString()}</td>
-      <td>${a.check_out_at ? new Date(a.check_out_at).toLocaleString() : "-"}</td>
+      <td>${checkInFormatted}</td>
+      <td>${checkOutFormatted}</td>
     `;
     tbody.appendChild(tr);
   }
