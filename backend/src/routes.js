@@ -58,6 +58,7 @@ export function registerRoutes(app, db, requireAuth) {
     );
     const memberId = memberResult.insertId;
 
+    const passwordHash = await bcrypt.hash(parsed.data.password, 10);
     const [userResult] = await db.execute(
       "INSERT INTO users (username, password_hash, role, member_id) VALUES (?, ?, ?, ?)",
       [parsed.data.username, passwordHash, "member", memberId]
@@ -273,17 +274,16 @@ export function registerRoutes(app, db, requireAuth) {
   app.post("/api/members", requireAuth, async (req, res) => {
     const parsed = memberCreateSchema.safeParse(req.body);
     if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
-    const id = nanoid();
-    await db.execute(
+    const [result] = await db.execute(
       `
       INSERT INTO members
-      (id, full_name, membership_type, join_date, status, assigned_trainer_id, phone, email, emergency_contact, notes)
+      (full_name, membership_type, join_date, status, assigned_trainer_id, phone, email, emergency_contact, notes)
       VALUES
-      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
-      [id, parsed.data.full_name, parsed.data.membership_type, parsed.data.join_date, parsed.data.status, parsed.data.assigned_trainer_id, parsed.data.phone, parsed.data.email, parsed.data.emergency_contact, parsed.data.notes]
+      [parsed.data.full_name, parsed.data.membership_type, parsed.data.join_date, parsed.data.status, parsed.data.assigned_trainer_id, parsed.data.phone, parsed.data.email, parsed.data.emergency_contact, parsed.data.notes]
     );
-    ok(res, { id });
+    ok(res, { id: result.insertId });
   });
 
   app.put("/api/members/:id", requireAuth, async (req, res) => {

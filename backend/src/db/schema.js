@@ -1,14 +1,6 @@
 export const schemaSql = `
--- Drop existing tables if they exist (for migration)
-DROP TABLE IF EXISTS password_resets;
-DROP TABLE IF EXISTS payments;
-DROP TABLE IF EXISTS attendance;
-DROP TABLE IF EXISTS account_freeze_settings;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS members;
-DROP TABLE IF EXISTS trainers;
-
-CREATE TABLE trainers (
+-- Create tables if they don't exist (for persistence)
+CREATE TABLE IF NOT EXISTS trainers (
   id INT AUTO_INCREMENT PRIMARY KEY,
   full_name VARCHAR(255) NOT NULL,
   specialty VARCHAR(255),
@@ -18,7 +10,7 @@ CREATE TABLE trainers (
   created_at DATETIME NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE members (
+CREATE TABLE IF NOT EXISTS members (
   id INT AUTO_INCREMENT PRIMARY KEY,
   full_name VARCHAR(255) NOT NULL,
   membership_type ENUM('monthly','annual') NOT NULL,
@@ -33,7 +25,7 @@ CREATE TABLE members (
   FOREIGN KEY(assigned_trainer_id) REFERENCES trainers(id) ON DELETE SET NULL
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
@@ -46,7 +38,7 @@ CREATE TABLE users (
   FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE SET NULL
 );
 
-CREATE TABLE account_freeze_settings (
+CREATE TABLE IF NOT EXISTS account_freeze_settings (
   id INT PRIMARY KEY DEFAULT 1,
   enabled BOOLEAN NOT NULL DEFAULT FALSE,
   inactive_days INT NOT NULL DEFAULT 30,
@@ -55,7 +47,7 @@ CREATE TABLE account_freeze_settings (
   last_run_at DATETIME
 );
 
-CREATE TABLE attendance (
+CREATE TABLE IF NOT EXISTS attendance (
   id INT AUTO_INCREMENT PRIMARY KEY,
   member_id INT NOT NULL,
   check_in_at DATETIME NOT NULL,
@@ -64,7 +56,7 @@ CREATE TABLE attendance (
   FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE CASCADE
 );
 
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
   id INT AUTO_INCREMENT PRIMARY KEY,
   member_id INT NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
@@ -74,15 +66,15 @@ CREATE TABLE payments (
   FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE CASCADE
 );
 
-CREATE TABLE password_resets (
+CREATE TABLE IF NOT EXISTS password_resets (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   reset_at DATETIME NOT NULL DEFAULT NOW(),
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_attendance_checkin ON attendance(check_in_at);
-CREATE INDEX idx_payments_paidat ON payments(paid_at);
-CREATE INDEX idx_members_trainer ON members(assigned_trainer_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_checkin ON attendance(check_in_at);
+CREATE INDEX IF NOT EXISTS idx_payments_paidat ON payments(paid_at);
+CREATE INDEX IF NOT EXISTS idx_members_trainer ON members(assigned_trainer_id);
 `;
 
