@@ -47,6 +47,15 @@ npm start
 - **Admin login**: `http://localhost:5050/login.html`
 - **Member login**: `http://localhost:5050/memberLogin.html`
 
+> If old attendance timestamps were stored with the wrong timezone, you can repair them with:
+>
+> ```bash
+> cd backend
+> npm run fix-attendance
+> ```
+>
+> Add `--force` to apply the updates after previewing the changes.
+
 ## Admin Login
 
 - **Username**: `admin`

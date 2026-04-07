@@ -6,7 +6,8 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "node src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "fix-attendance": "node scripts/fix-attendance-timestamps.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
