@@ -149,9 +149,8 @@ export function registerRoutes(app, db, requireAuth) {
       [user.member_id]
     );
     if (openRows.length > 0) return res.status(409).json({ error: "Already checked in. Please check out first." });
-    const [result] = await db.execute("INSERT INTO attendance (member_id, check_in_at, check_out_at) VALUES (?, ?, NULL)", [
-      user.member_id,
-      new Date().toISOString()
+    const [result] = await db.execute("INSERT INTO attendance (member_id, check_in_at, check_out_at) VALUES (?, NOW(), NULL)", [
+      user.member_id
     ]);
     ok(res, { id: result.insertId });
   });
@@ -164,7 +163,7 @@ export function registerRoutes(app, db, requireAuth) {
       [user.member_id]
     );
     if (openRows.length === 0) return res.status(409).json({ error: "No active check-in found." });
-    await db.execute("UPDATE attendance SET check_out_at=? WHERE id=?", [new Date().toISOString(), openRows[0].id]);
+    await db.execute("UPDATE attendance SET check_out_at=NOW() WHERE id=?", [openRows[0].id]);
     ok(res, { ok: true });
   });
 
@@ -370,12 +369,18 @@ export function registerRoutes(app, db, requireAuth) {
     const parsed = attendanceCreateSchema.safeParse(req.body);
     if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
     const id = nanoid();
-    const check_in_at = parsed.data.check_in_at || new Date().toISOString();
-    await db.execute("INSERT INTO attendance (id, member_id, check_in_at, check_out_at) VALUES (?, ?, ?, NULL)", [
-      id,
-      parsed.data.member_id,
-      check_in_at
-    ]);
+    if (parsed.data.check_in_at) {
+      await db.execute("INSERT INTO attendance (id, member_id, check_in_at, check_out_at) VALUES (?, ?, ?, NULL)", [
+        id,
+        parsed.data.member_id,
+        parsed.data.check_in_at
+      ]);
+    } else {
+      await db.execute("INSERT INTO attendance (id, member_id, check_in_at, check_out_at) VALUES (?, ?, NOW(), NULL)", [
+        id,
+        parsed.data.member_id
+      ]);
+    }
     ok(res, { id });
   });
 
