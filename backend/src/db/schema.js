@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS members (
   assigned_trainer_id INT,
   phone VARCHAR(255),
   email VARCHAR(255),
+  profile_picture VARCHAR(255),
   emergency_contact TEXT,
   notes TEXT,
   created_at DATETIME NOT NULL DEFAULT NOW(),

@@ -53,6 +53,13 @@ async function migrateAttendanceForCheckout(db) {
   await db.execute("CREATE INDEX IF NOT EXISTS idx_attendance_checkout ON attendance(check_out_at)");
 }
 
+async function migrateMembersProfilePicture(db) {
+  if (!(await hasTable(db, "members"))) return;
+  if (!(await hasColumn(db, "members", "profile_picture"))) {
+    await db.execute("ALTER TABLE members ADD COLUMN profile_picture VARCHAR(255)");
+  }
+}
+
 export async function initDb(db) {
   // Split schema SQL and execute each statement
   const statements = schemaSql.split(';').filter(stmt => stmt.trim());
@@ -67,6 +74,7 @@ export async function initDb(db) {
   // Lightweight migrations for existing database
   await migrateUsersForMemberPortal(db);
   await migrateAttendanceForCheckout(db);
+  await migrateMembersProfilePicture(db);
 
   // Create the index only after migration adds the column.
   await db.execute("CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at)");

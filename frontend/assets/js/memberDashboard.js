@@ -45,6 +45,12 @@ async function loadTrainers(selectedId) {
 async function refresh() {
   const me = await memberApi("/api/member/me");
   el("memberName").textContent = me.member?.full_name || me.user?.username || "Member";
+  const avatar = document.getElementById("memberAvatar");
+  if (me.member?.profile_picture) {
+    avatar.src = me.member.profile_picture;
+  } else {
+    avatar.src = "";
+  }
 
   await loadTrainers(me.member?.assigned_trainer_id || "");
   const att = await memberApi("/api/member/attendance");

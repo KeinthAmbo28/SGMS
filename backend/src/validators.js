@@ -11,7 +11,8 @@ export const memberRegisterSchema = z.object({
   password: z.string().min(6),
   membership_type: z.enum(["monthly", "annual"]).optional().default("monthly"),
   phone: z.string().optional().nullable(),
-  email: z.string().email().optional().nullable()
+  email: z.string().email().optional().nullable(),
+  profile_picture: z.string().optional().nullable()
 });
 
 export const trainerCreateSchema = z.object({

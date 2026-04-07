@@ -1,4 +1,7 @@
 import bcrypt from "bcryptjs";
+import fs from "fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { signToken, requireRole } from "./auth.js";
 import {
   attendanceCreateSchema,
@@ -21,9 +24,32 @@ function badRequest(res, message, details) {
   return res.status(400).json({ error: message, details });
 }
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const MEMBER_IMAGE_DIR = path.resolve(__dirname, "../../frontend/assets/img/members");
+const MEMBER_IMAGE_URL_PREFIX = "/assets/img/members";
+
 function toLocalMysqlDatetime(date = new Date()) {
   const pad = (value) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+function sanitizeFilename(name) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+async function saveMemberProfilePicture(dataUrl, memberId) {
+  if (!dataUrl) return null;
+  const matches = dataUrl.match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/);
+  if (!matches) return null;
+  const mimeType = matches[1];
+  const extension = matches[2] === "jpeg" ? "jpg" : matches[2];
+  const base64Data = matches[3];
+  const filename = sanitizeFilename(`member_${memberId}_${Date.now()}.${extension}`);
+  const filePath = path.join(MEMBER_IMAGE_DIR, filename);
+  await fs.mkdir(MEMBER_IMAGE_DIR, { recursive: true });
+  await fs.writeFile(filePath, base64Data, "base64");
+  return `${MEMBER_IMAGE_URL_PREFIX}/${filename}`;
 }
 
 export function registerRoutes(app, db, requireAuth) {
@@ -55,13 +81,21 @@ export function registerRoutes(app, db, requireAuth) {
     const [memberResult] = await db.execute(
       `
       INSERT INTO members
-      (full_name, membership_type, join_date, status, assigned_trainer_id, phone, email, emergency_contact, notes)
+      (full_name, membership_type, join_date, status, assigned_trainer_id, phone, email, profile_picture, emergency_contact, notes)
       VALUES
-      (?, ?, ?, 'active', NULL, ?, ?, NULL, NULL)
+      (?, ?, ?, 'active', NULL, ?, ?, NULL, NULL, NULL)
     `,
-      [parsed.data.full_name, parsed.data.membership_type, join_date, parsed.data.phone ?? null, parsed.data.email ?? null]
+      [parsed.data.full_name, parsed.data.membership_type, join_date, parsed.data.phone ?? null, parsed.data.email ?? null, null]
     );
     const memberId = memberResult.insertId;
+
+    let profilePicturePath = null;
+    if (parsed.data.profile_picture) {
+      profilePicturePath = await saveMemberProfilePicture(parsed.data.profile_picture, memberId);
+      if (profilePicturePath) {
+        await db.execute("UPDATE members SET profile_picture=? WHERE id= ?", [profilePicturePath, memberId]);
+      }
+    }
 
     const passwordHash = await bcrypt.hash(parsed.data.password, 10);
     const [userResult] = await db.execute(

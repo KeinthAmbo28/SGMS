@@ -65,6 +65,12 @@
             <label for="email">Email (optional)</label>
             <input id="email" placeholder="name@email.com" autocomplete="email" />
 
+            <label for="profilePicture">Profile picture</label>
+            <input id="profilePicture" type="file" accept="image/*" capture="user" />
+            <div id="profilePreview" style="display:none; margin-top:10px">
+              <img id="profilePreviewImg" alt="Profile preview" style="max-width:120px; border-radius: 16px; border: 1px solid #ddd;" />
+            </div>
+
             <div class="actions">
               <button class="btn btn-primary" id="registerBtn" type="button">Create account</button>
             </div>
@@ -82,6 +88,10 @@
       const username = document.getElementById("username");
       const password = document.getElementById("password");
       const registerBox = document.getElementById("registerBox");
+      const profilePictureInput = document.getElementById("profilePicture");
+      const profilePreview = document.getElementById("profilePreview");
+      const profilePreviewImg = document.getElementById("profilePreviewImg");
+      let profilePictureData = null;
 
       if (getMemberToken()) {
         window.location.href = "/memberDashboard.html";
@@ -95,6 +105,36 @@
       function clearError(){
         errBox.style.display = "none";
       }
+
+      function setProfilePreview(src) {
+        if (src) {
+          profilePreviewImg.src = src;
+          profilePreview.style.display = "block";
+        } else {
+          profilePreviewImg.src = "";
+          profilePreview.style.display = "none";
+        }
+      }
+
+      profilePictureInput.addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+          profilePictureData = null;
+          setProfilePreview(null);
+          return;
+        }
+        if (!file.type.startsWith("image/")) {
+          showError("Please choose a valid image file.");
+          profilePictureInput.value = "";
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          profilePictureData = reader.result;
+          setProfilePreview(profilePictureData);
+        };
+        reader.readAsDataURL(file);
+      });
 
       document.getElementById("toggleBtn").addEventListener("click", () => {
         registerBox.style.display = registerBox.style.display === "none" ? "block" : "none";
@@ -129,7 +169,8 @@
               password: regPassword || password.value,
               membership_type: document.getElementById("membershipType").value,
               phone: document.getElementById("phone").value.trim() || null,
-              email: document.getElementById("email").value.trim() || null
+              email: document.getElementById("email").value.trim() || null,
+              profile_picture: profilePictureData || null
             }
           });
           setMemberToken(data.token);
