@@ -1,6 +1,7 @@
 import { clearMemberToken, memberApi, requireMemberSession } from "/assets/js/memberApp.js";
 
 const el = (id) => document.getElementById(id);
+const parseLocalDate = (value) => value ? new Date(value.replace(" ", "T")) : null;
 
 function setMsg(id, text) {
   el(id).textContent = text || "";
@@ -11,8 +12,8 @@ function renderAttendance(rows) {
   tbody.innerHTML = "";
   for (const r of rows) {
     const open = !r.check_out_at;
-    const checkInDate = new Date(r.check_in_at);
-    const checkOutDate = r.check_out_at ? new Date(r.check_out_at) : null;
+    const checkInDate = parseLocalDate(r.check_in_at);
+    const checkOutDate = r.check_out_at ? parseLocalDate(r.check_out_at) : null;
 
     // Format date and time with seconds for exact precision
     const checkInFormatted = `${checkInDate.toLocaleDateString()} ${checkInDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}`;

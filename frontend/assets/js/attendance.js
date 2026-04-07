@@ -1,6 +1,7 @@
 import { api, mountSidebar, requireSession } from "/assets/js/app.js";
 
 const el = (id) => document.getElementById(id);
+const parseLocalDate = (value) => value ? new Date(value.replace(" ", "T")) : null;
 
 async function loadMembers() {
   const { members } = await api("/api/members");
@@ -18,8 +19,8 @@ function render(attendance) {
   const tbody = el("tbody");
   tbody.innerHTML = "";
   for (const a of attendance) {
-    const checkInDate = new Date(a.check_in_at);
-    const checkOutDate = a.check_out_at ? new Date(a.check_out_at) : null;
+    const checkInDate = parseLocalDate(a.check_in_at);
+    const checkOutDate = a.check_out_at ? parseLocalDate(a.check_out_at) : null;
 
     // Format date and time with seconds for exact precision
     const checkInFormatted = `${checkInDate.toLocaleDateString()} ${checkInDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}`;
