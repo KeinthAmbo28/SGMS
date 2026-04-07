@@ -21,6 +21,11 @@ function badRequest(res, message, details) {
   return res.status(400).json({ error: message, details });
 }
 
+function toLocalMysqlDatetime(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 export function registerRoutes(app, db, requireAuth) {
   app.get("/api/health", (req, res) => ok(res, { ok: true }));
 
@@ -149,8 +154,9 @@ export function registerRoutes(app, db, requireAuth) {
       [user.member_id]
     );
     if (openRows.length > 0) return res.status(409).json({ error: "Already checked in. Please check out first." });
-    const [result] = await db.execute("INSERT INTO attendance (member_id, check_in_at, check_out_at) VALUES (?, NOW(), NULL)", [
-      user.member_id
+    const [result] = await db.execute("INSERT INTO attendance (member_id, check_in_at, check_out_at) VALUES (?, ?, NULL)", [
+      user.member_id,
+      toLocalMysqlDatetime()
     ]);
     ok(res, { id: result.insertId });
   });
@@ -163,7 +169,7 @@ export function registerRoutes(app, db, requireAuth) {
       [user.member_id]
     );
     if (openRows.length === 0) return res.status(409).json({ error: "No active check-in found." });
-    await db.execute("UPDATE attendance SET check_out_at=NOW() WHERE id=?", [openRows[0].id]);
+    await db.execute("UPDATE attendance SET check_out_at=? WHERE id=?", [toLocalMysqlDatetime(), openRows[0].id]);
     ok(res, { ok: true });
   });
 
@@ -376,9 +382,10 @@ export function registerRoutes(app, db, requireAuth) {
         parsed.data.check_in_at
       ]);
     } else {
-      await db.execute("INSERT INTO attendance (id, member_id, check_in_at, check_out_at) VALUES (?, ?, NOW(), NULL)", [
+      await db.execute("INSERT INTO attendance (id, member_id, check_in_at, check_out_at) VALUES (?, ?, ?, NULL)", [
         id,
-        parsed.data.member_id
+        parsed.data.member_id,
+        toLocalMysqlDatetime()
       ]);
     }
     ok(res, { id });
