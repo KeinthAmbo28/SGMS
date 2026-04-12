@@ -109,16 +109,14 @@ export async function initDb(db) {
 
   // Ensure admin user exists
   const [adminRows] = await db.query(
-    "SELECT * FROM users WHERE username=?",
-    ["admin"]
-  );
+  `SELECT * FROM users WHERE username='admin'`
+);
 
   if (adminRows.length === 0) {
     const passwordHash = await bcrypt.hash("admin123", 10);
 
     await db.query(
-      "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-      ["admin", passwordHash, "admin"]
-    );
+  `INSERT INTO users (username, password_hash, role) VALUES ('admin', '${passwordHash}', 'admin')`
+);
   }
 }
