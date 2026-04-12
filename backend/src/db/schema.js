@@ -1,5 +1,6 @@
 export const schemaSql = `
 -- Create tables if they don't exist (for persistence)
+
 CREATE TABLE IF NOT EXISTS trainers (
   id INT AUTO_INCREMENT PRIMARY KEY,
   full_name VARCHAR(255) NOT NULL,
@@ -74,8 +75,5 @@ CREATE TABLE IF NOT EXISTS password_resets (
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_attendance_checkin ON attendance(check_in_at);
-CREATE INDEX IF NOT EXISTS idx_payments_paidat ON payments(paid_at);
-CREATE INDEX IF NOT EXISTS idx_members_trainer ON members(assigned_trainer_id);
+-- ❌ REMOVED INDEXES FROM HERE (handled safely in initDb)
 `;
-
