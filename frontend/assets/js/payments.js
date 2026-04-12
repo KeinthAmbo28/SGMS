@@ -2,6 +2,7 @@ import { api, formatPeso, mountSidebar, requireSession } from "/assets/js/app.js
 
 const el = (id) => document.getElementById(id);
 
+// Load members into the dropdown
 async function loadMembers() {
   try {
     const { members } = await api("/api/members");
@@ -19,6 +20,7 @@ async function loadMembers() {
   }
 }
 
+// Render the payments table
 function render(payments) {
   const tbody = el("tbody");
   tbody.innerHTML = "";
@@ -28,12 +30,13 @@ function render(payments) {
       <td><b>${p.member_name}</b></td>
       <td>${formatPeso(p.amount)}</td>
       <td>${p.method}</td>
-      <td>${p.paid_at ? new Date(p.paid_at).toLocaleString() : "-"}</td>
+      <td>${new Date(p.paid_at).toLocaleString()}</td>
     `;
     tbody.appendChild(tr);
   }
 }
 
+// Refresh payments table
 async function refresh() {
   try {
     const { payments } = await api("/api/payments");
@@ -44,47 +47,63 @@ async function refresh() {
   }
 }
 
+// Show error or success
+function showError(msg) {
+  el("msg").textContent = msg;
+  el("msg").style.color = "red";
+}
+function showSuccess(msg) {
+  el("msg").textContent = msg;
+  el("msg").style.color = "green";
+}
+
+// Add a new payment
 async function addPayment() {
   el("msg").textContent = "";
 
   try {
     const memberId = el("memberSelect").value;
-    const amount = Number(el("amount").value);
-    if (!memberId || !amount || amount <= 0) {
-      el("msg").textContent = "Please select a member and enter a valid amount.";
-      return;
-    }
-
-    // Validate paid_at
+    let amount = Number(el("amount").value);
+    const method = el("method").value;
     let paidAt = el("paidAt").value.trim();
-    if (!paidAt) paidAt = null;
-    else {
+
+    // =======================
+    // VALIDATIONS
+    // =======================
+    if (!memberId) return showError("Select a member.");
+    if (!amount || isNaN(amount) || amount <= 0) return showError("Enter a valid amount.");
+    if (!["cash", "card", "gcash", "bank"].includes(method)) return showError("Select a valid method.");
+
+    // Convert paidAt to MySQL DATETIME or null
+    if (paidAt) {
       const date = new Date(paidAt);
-      if (isNaN(date.getTime())) paidAt = null;
-      else paidAt = date.toISOString().slice(0, 19).replace("T", " ");
+      if (isNaN(date.getTime())) return showError("Invalid date format for Paid at.");
+      paidAt = date.toISOString().slice(0, 19).replace("T", " ");
+    } else {
+      paidAt = null;
     }
 
+    // =======================
+    // SEND API REQUEST
+    // =======================
     await api("/api/payments", {
       method: "POST",
-      body: {
-        member_id: memberId,
-        amount,
-        method: el("method").value,
-        paid_at: paidAt
-      }
+      body: { member_id: memberId, amount, method, paid_at: paidAt }
     });
 
+    // Clear form
     el("amount").value = "";
     el("paidAt").value = "";
-    el("msg").textContent = "Payment recorded successfully!";
-    await refresh();
 
+    showSuccess("Payment recorded successfully!");
+    await refresh();
   } catch (e) {
     console.error("Error adding payment:", e);
-    el("msg").textContent = e.data?.error || e.message || "Failed to record payment.";
+    showError(e.data?.error || e.message || "Failed to record payment.");
   }
 }
 
+// MAIN
 async function main() {
   mountSidebar("payments");
   const user = await requireSession();
