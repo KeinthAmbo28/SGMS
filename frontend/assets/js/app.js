@@ -1,6 +1,6 @@
 const STORAGE_KEY = "powerhousegym_token_v1";
 
-// 🔥 AUTO-DETECT BASE URL (works for localhost + Render)
+// 🔥 AUTO BASE URL (Render + localhost)
 const BASE_URL = window.location.origin;
 
 // ==========================
@@ -19,14 +19,14 @@ export function clearToken() {
 }
 
 // ==========================
-// API CALL FUNCTION
+// API FUNCTION
 // ==========================
 export async function api(path, { method = "GET", body, auth = true } = {}) {
   const headers = {
     "Content-Type": "application/json"
   };
 
-  // 🔐 Attach token if needed
+  // 🔐 Attach token
   if (auth) {
     const token = getToken();
     if (token) {
@@ -46,11 +46,18 @@ export async function api(path, { method = "GET", body, auth = true } = {}) {
     try {
       data = await res.json();
     } catch {
-      // ignore JSON parse error
+      // ignore if no JSON
     }
 
     if (!res.ok) {
       const msg = data?.error || `Request failed (${res.status})`;
+
+      // 🔥 AUTO LOGOUT if unauthorized
+      if (res.status === 401) {
+        clearToken();
+        window.location.href = "/login.html";
+      }
+
       const err = new Error(msg);
       err.status = res.status;
       err.data = data;
@@ -66,7 +73,19 @@ export async function api(path, { method = "GET", body, auth = true } = {}) {
 }
 
 // ==========================
-// SESSION CHECK
+// GET CURRENT USER
+// ==========================
+export async function getCurrentUser() {
+  try {
+    const res = await api("/api/me");
+    return res.user; // expects { user: { id, role, ... } }
+  } catch (err) {
+    return null;
+  }
+}
+
+// ==========================
+// REQUIRE SESSION (PROTECT PAGE)
 // ==========================
 export async function requireSession() {
   const token = getToken();
@@ -76,19 +95,40 @@ export async function requireSession() {
     return null;
   }
 
-  try {
-    const me = await api("/api/me");
-    return me.user;
-  } catch (err) {
-    console.warn("Session expired or invalid");
+  const user = await getCurrentUser();
+
+  if (!user) {
     clearToken();
     window.location.href = "/login.html";
     return null;
   }
+
+  return user;
 }
 
 // ==========================
-// SIDEBAR NAVIGATION
+// ROLE PROTECTION (🔥 NEW)
+// ==========================
+export async function requireRole(role) {
+  const user = await requireSession();
+
+  if (!user) return null;
+
+  if (user.role !== role) {
+    // redirect wrong role
+    if (user.role === "admin") {
+      window.location.href = "/adminDashboard.html";
+    } else {
+      window.location.href = "/memberDashboard.html";
+    }
+    return null;
+  }
+
+  return user;
+}
+
+// ==========================
+// SIDEBAR
 // ==========================
 export function mountSidebar(activeKey) {
   const links = document.querySelectorAll("[data-nav]");
