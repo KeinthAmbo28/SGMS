@@ -12,13 +12,14 @@ export const config = {
   //   fileURLToPath(new URL("./db/smartgym.sqlite", import.meta.url)),
   // MySQL config
   db: {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT),
-  connectionLimit: 10,
-  connectTimeout: 60000
-}
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "smartgym",
+    port: Number(process.env.DB_PORT) || 3306,
+    // Connection pool settings for better performance
+    connectionLimit: 10,
+    connectTimeout: 60000
+  }
 };
 
