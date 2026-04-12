@@ -1,156 +1,153 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Powerhouse Gym | Member Registration</title>
-    <link rel="stylesheet" href="/assets/css/styles.css" />
-  </head>
-  <body>
-    <div class="login-wrap">
-      <div class="login-card">
-        <div class="login-left">
-          <img class="logo" src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo">
-          <h1>Member Registration</h1>
-          <p>Create your account to access the gym system.</p>
-        </div>
-
-        <div class="login-right">
-          <h2>Register</h2>
-          <div class="muted small">Create a new member account.</div>
-
-          <label for="fullName">Full name</label>
-          <input id="fullName" placeholder="Enter full name" />
-
-          <div class="form-row">
-            <div>
-              <label for="username">Username</label>
-              <input id="username" placeholder="Create a username" />
-            </div>
-            <div>
-              <label for="password">Password</label>
-              <input id="password" type="password" placeholder="Min 6 characters" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div>
-              <label for="membershipType">Membership</label>
-              <select id="membershipType">
-                <option value="monthly">Monthly</option>
-                <option value="annual">Annual</option>
-              </select>
-            </div>
-            <div>
-              <label for="phone">Phone</label>
-              <input id="phone" placeholder="09xx..." />
-            </div>
-          </div>
-
-          <label for="email">Email (optional)</label>
-          <input id="email" placeholder="name@email.com" />
-
-          <label for="profilePicture">Profile picture</label>
-          <input id="profilePicture" type="file" accept="image/*" />
-
-          <div id="profilePreview" style="display:none; margin-top:10px">
-            <img id="profilePreviewImg" style="max-width:120px; border-radius:16px; border:1px solid #ddd;" />
-          </div>
-
-          <div class="actions">
-            <button class="btn btn-primary" id="registerBtn">Create account</button>
-          </div>
-
-          <div class="error" id="errBox"></div>
-          <div class="success" id="successBox"></div>
-        </div>
-      </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Powerhouse Gym | Member Registration</title>
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-left">
+      <img class="logo" src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo">
+      <h1>Member Registration</h1>
+      <p>Create your account to access the gym system.</p>
     </div>
 
-    <script type="module">
-      import { memberApi, setMemberToken } from "/assets/js/memberApp.js";
+    <div class="login-right">
+      <h2>Register</h2>
+      <div class="muted small">Create a new member account.</div>
 
-      const errBox = document.getElementById("errBox");
-      const successBox = document.getElementById("successBox");
-      const profilePictureInput = document.getElementById("profilePicture");
-      const profilePreview = document.getElementById("profilePreview");
-      const profilePreviewImg = document.getElementById("profilePreviewImg");
+      <label for="fullName">Full name</label>
+      <input id="fullName" placeholder="Enter full name" />
 
-      let profilePictureData = null;
+      <div class="form-row">
+        <div>
+          <label for="username">Username</label>
+          <input id="username" placeholder="Create a username" />
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Min 6 characters" />
+        </div>
+      </div>
 
-      function showError(msg) {
-        errBox.textContent = msg;
-        errBox.style.display = "block";
-        successBox.style.display = "none";
+      <div class="form-row">
+        <div>
+          <label for="membershipType">Membership</label>
+          <select id="membershipType">
+            <option value="monthly">Monthly</option>
+            <option value="annual">Annual</option>
+          </select>
+        </div>
+        <div>
+          <label for="phone">Phone</label>
+          <input id="phone" placeholder="09xx..." />
+        </div>
+      </div>
+
+      <label for="email">Email (optional)</label>
+      <input id="email" placeholder="name@email.com" />
+
+      <label for="profilePicture">Profile picture</label>
+      <input id="profilePicture" type="file" accept="image/*" />
+
+      <div id="profilePreview" style="display:none; margin-top:10px">
+        <img id="profilePreviewImg" style="max-width:120px; border-radius:16px; border:1px solid #ddd;" />
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="registerBtn">Create account</button>
+      </div>
+
+      <div class="error" id="errBox"></div>
+      <div class="success" id="successBox"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { memberApi, setMemberToken, getMemberToken } from "/assets/js/memberApp.js";
+
+const errBox = document.getElementById("errBox");
+const successBox = document.getElementById("successBox");
+const profilePictureInput = document.getElementById("profilePicture");
+const profilePreview = document.getElementById("profilePreview");
+const profilePreviewImg = document.getElementById("profilePreviewImg");
+
+let profilePictureData = null;
+
+function showError(msg){
+  errBox.textContent = msg;
+  errBox.style.display = "block";
+  successBox.style.display = "none";
+}
+
+function showSuccess(msg){
+  successBox.textContent = msg;
+  successBox.style.display = "block";
+  errBox.style.display = "none";
+}
+
+function setProfilePreview(src){
+  if(src){
+    profilePreviewImg.src = src;
+    profilePreview.style.display = "block";
+  } else {
+    profilePreview.style.display = "none";
+  }
+}
+
+// Preview image
+profilePictureInput.addEventListener("change", (event)=>{
+  const file = event.target.files?.[0];
+  if(!file) return;
+  if(!file.type.startsWith("image/")){
+    showError("Please select a valid image.");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ()=> {
+    profilePictureData = reader.result;
+    setProfilePreview(profilePictureData);
+  };
+  reader.readAsDataURL(file);
+});
+
+// Auto redirect if already logged in
+if(getMemberToken()){
+  window.location.href = "/memberDashboard.html";
+}
+
+// Register function
+async function register(){
+  errBox.style.display = "none";
+  try{
+    const data = await memberApi("/api/member/register", {
+      method: "POST",
+      auth: false,
+      body: {
+        full_name: document.getElementById("fullName").value.trim(),
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value,
+        membership_type: document.getElementById("membershipType").value,
+        phone: document.getElementById("phone").value.trim() || null,
+        email: document.getElementById("email").value.trim() || null,
+        profile_picture: profilePictureData || null
       }
+    });
 
-      function showSuccess(msg) {
-        successBox.textContent = msg;
-        successBox.style.display = "block";
-        errBox.style.display = "none";
-      }
+    setMemberToken(data.token);
+    showSuccess("Account created successfully! Redirecting...");
+    setTimeout(()=> window.location.href="/memberDashboard.html", 1000);
 
-      function setProfilePreview(src) {
-        if (src) {
-          profilePreviewImg.src = src;
-          profilePreview.style.display = "block";
-        } else {
-          profilePreview.style.display = "none";
-        }
-      }
+  }catch(e){
+    showError(e.message || "Registration failed");
+  }
+}
 
-      // Preview image
-      profilePictureInput.addEventListener("change", (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith("image/")) {
-          showError("Please select a valid image.");
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-          profilePictureData = reader.result;
-          setProfilePreview(profilePictureData);
-        };
-        reader.readAsDataURL(file);
-      });
-
-      // REGISTER ONLY
-      async function register() {
-        errBox.style.display = "none";
-
-        try {
-          const data = await memberApi("/api/member/register", {
-            method: "POST",
-            auth: false,
-            body: {
-              full_name: document.getElementById("fullName").value.trim(),
-              username: document.getElementById("username").value.trim(),
-              password: document.getElementById("password").value,
-              membership_type: document.getElementById("membershipType").value,
-              phone: document.getElementById("phone").value.trim() || null,
-              email: document.getElementById("email").value.trim() || null,
-              profile_picture: profilePictureData || null
-            }
-          });
-
-          setMemberToken(data.token);
-
-          showSuccess("Account created successfully!");
-
-          // 🔥 Redirect after register
-          setTimeout(() => {
-            window.location.href = "/memberDashboard.html";
-          }, 1500);
-
-        } catch (e) {
-          showError(e.message || "Registration failed");
-        }
-      }
-
-      document.getElementById("registerBtn").addEventListener("click", register);
-    </script>
-  </body>
+document.getElementById("registerBtn").addEventListener("click", register);
+</script>
+</body>
 </html>

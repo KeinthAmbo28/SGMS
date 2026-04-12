@@ -1,46 +1,23 @@
 const STORAGE_KEY = "powerhousegym_member_token_v1";
+const BASE_URL = window.location.origin;
 
-export function getMemberToken() {
-  return localStorage.getItem(STORAGE_KEY) || "";
-}
+export function getMemberToken(){ return localStorage.getItem(STORAGE_KEY) || ""; }
+export function setMemberToken(token){ localStorage.setItem(STORAGE_KEY, token); }
+export function clearMemberToken(){ localStorage.removeItem(STORAGE_KEY); }
 
-export function setMemberToken(token) {
-  localStorage.setItem(STORAGE_KEY, token);
-}
-
-export function clearMemberToken() {
-  localStorage.removeItem(STORAGE_KEY);
-}
-
-export async function memberApi(path, { method = "GET", body, auth = true } = {}) {
+export async function memberApi(path, {method="GET", body, auth=true} = {}){
   const headers = { "Content-Type": "application/json" };
-  if (auth) {
+  if(auth){
     const token = getMemberToken();
-    if (token) headers.Authorization = `Bearer ${token}`;
+    if(token) headers.Authorization = `Bearer ${token}`;
   }
-  const res = await fetch(path, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined
-  });
+
+  const res = await fetch(`${BASE_URL}${path}`, { method, headers, body: body? JSON.stringify(body) : undefined });
   let data = null;
-  try {
-    data = await res.json();
-  } catch {
-    // ignore
-  }
-  if (!res.ok) {
-    const fieldHint = (() => {
-      const fieldErrors = data?.details?.fieldErrors;
-      if (!fieldErrors) return "";
-      const firstKey = Object.keys(fieldErrors)[0];
-      const firstMsg = fieldErrors?.[firstKey]?.[0];
-      if (!firstKey || !firstMsg) return "";
-      return ` (${firstKey}: ${firstMsg})`;
-    })();
-    const msg = (data?.error || `Request failed (${res.status})`) + fieldHint;
-    const err = new Error(msg);
-    err.status = res.status;
+  try{ data = await res.json(); }catch{}
+  if(!res.ok){
+    if(res.status===401){ clearMemberToken(); window.location.href="/memberRegister.html"; }
+    const err = new Error(data?.error || `Request failed (${res.status})`);
     err.data = data;
     throw err;
   }
