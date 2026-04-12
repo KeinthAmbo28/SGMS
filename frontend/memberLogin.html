@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Powerhouse Gym | Member Login</title>
+    <title>Powerhouse Gym | Member Registration</title>
     <link rel="stylesheet" href="/assets/css/styles.css" />
   </head>
   <body>
@@ -11,99 +11,82 @@
       <div class="login-card">
         <div class="login-left">
           <img class="logo" src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo">
-          <h1>Powerhouse Gym Member Portal</h1>
-          <p>
-            Create your member account, log in, check in/out, and choose an available trainer.
-          </p>
+          <h1>Member Registration</h1>
+          <p>Create your account to access the gym system.</p>
         </div>
+
         <div class="login-right">
-          <h2>Member Login</h2>
-          <div class="muted small">Sign in with your member account.</div>
+          <h2>Register</h2>
+          <div class="muted small">Create a new member account.</div>
 
-          <label for="username">Username</label>
-          <input id="username" placeholder="Enter username" autocomplete="username" />
+          <label for="fullName">Full name</label>
+          <input id="fullName" placeholder="Enter full name" />
 
-          <label for="password">Password</label>
-          <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
-
-          <div class="actions">
-            <button class="btn btn-primary" id="loginBtn">Login</button>
-            <button class="btn btn-ghost" id="toggleBtn" type="button">Create account</button>
+          <div class="form-row">
+            <div>
+              <label for="username">Username</label>
+              <input id="username" placeholder="Create a username" />
+            </div>
+            <div>
+              <label for="password">Password</label>
+              <input id="password" type="password" placeholder="Min 6 characters" />
+            </div>
           </div>
 
-          <div id="registerBox" style="display:none; margin-top:14px">
-            <h2 style="margin-top:6px">Register</h2>
-            <div class="muted small">Create a new member account.</div>
-
-            <label for="fullName">Full name</label>
-            <input id="fullName" placeholder="Enter full name" autocomplete="name" />
-
-            <div class="form-row">
-              <div>
-                <label for="regUsername">Username</label>
-                <input id="regUsername" placeholder="Create a username" autocomplete="username" />
-              </div>
-              <div>
-                <label for="regPassword">Password</label>
-                <input id="regPassword" type="password" placeholder="Min 6 characters" autocomplete="new-password" />
-              </div>
+          <div class="form-row">
+            <div>
+              <label for="membershipType">Membership</label>
+              <select id="membershipType">
+                <option value="monthly">Monthly</option>
+                <option value="annual">Annual</option>
+              </select>
             </div>
-
-            <div class="form-row">
-              <div>
-                <label for="membershipType">Membership</label>
-                <select id="membershipType">
-                  <option value="monthly">Monthly</option>
-                  <option value="annual">Annual</option>
-                </select>
-              </div>
-              <div>
-                <label for="phone">Phone</label>
-                <input id="phone" placeholder="09xx..." autocomplete="tel" />
-              </div>
+            <div>
+              <label for="phone">Phone</label>
+              <input id="phone" placeholder="09xx..." />
             </div>
+          </div>
 
-            <label for="email">Email (optional)</label>
-            <input id="email" placeholder="name@email.com" autocomplete="email" />
+          <label for="email">Email (optional)</label>
+          <input id="email" placeholder="name@email.com" />
 
-            <label for="profilePicture">Profile picture</label>
-            <input id="profilePicture" type="file" accept="image/*" capture="user" />
-            <div id="profilePreview" style="display:none; margin-top:10px">
-              <img id="profilePreviewImg" alt="Profile preview" style="max-width:120px; border-radius: 16px; border: 1px solid #ddd;" />
-            </div>
+          <label for="profilePicture">Profile picture</label>
+          <input id="profilePicture" type="file" accept="image/*" />
 
-            <div class="actions">
-              <button class="btn btn-primary" id="registerBtn" type="button">Create account</button>
-            </div>
+          <div id="profilePreview" style="display:none; margin-top:10px">
+            <img id="profilePreviewImg" style="max-width:120px; border-radius:16px; border:1px solid #ddd;" />
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="registerBtn">Create account</button>
           </div>
 
           <div class="error" id="errBox"></div>
+          <div class="success" id="successBox"></div>
         </div>
       </div>
     </div>
 
     <script type="module">
-      import { memberApi, setMemberToken, getMemberToken } from "/assets/js/memberApp.js";
+      import { memberApi, setMemberToken } from "/assets/js/memberApp.js";
 
       const errBox = document.getElementById("errBox");
-      const username = document.getElementById("username");
-      const password = document.getElementById("password");
-      const registerBox = document.getElementById("registerBox");
+      const successBox = document.getElementById("successBox");
       const profilePictureInput = document.getElementById("profilePicture");
       const profilePreview = document.getElementById("profilePreview");
       const profilePreviewImg = document.getElementById("profilePreviewImg");
+
       let profilePictureData = null;
 
-      if (getMemberToken()) {
-        window.location.href = "/memberDashboard.html";
-      }
-
-      function showError(msg){
-        errBox.textContent = msg || "Something went wrong";
+      function showError(msg) {
+        errBox.textContent = msg;
         errBox.style.display = "block";
+        successBox.style.display = "none";
       }
 
-      function clearError(){
+      function showSuccess(msg) {
+        successBox.textContent = msg;
+        successBox.style.display = "block";
         errBox.style.display = "none";
       }
 
@@ -112,23 +95,20 @@
           profilePreviewImg.src = src;
           profilePreview.style.display = "block";
         } else {
-          profilePreviewImg.src = "";
           profilePreview.style.display = "none";
         }
       }
 
-      profilePictureInput.addEventListener("change", async (event) => {
+      // Preview image
+      profilePictureInput.addEventListener("change", (event) => {
         const file = event.target.files?.[0];
-        if (!file) {
-          profilePictureData = null;
-          setProfilePreview(null);
-          return;
-        }
+        if (!file) return;
+
         if (!file.type.startsWith("image/")) {
-          showError("Please choose a valid image file.");
-          profilePictureInput.value = "";
+          showError("Please select a valid image.");
           return;
         }
+
         const reader = new FileReader();
         reader.onload = () => {
           profilePictureData = reader.result;
@@ -137,56 +117,40 @@
         reader.readAsDataURL(file);
       });
 
-      document.getElementById("toggleBtn").addEventListener("click", () => {
-        registerBox.style.display = registerBox.style.display === "none" ? "block" : "none";
-      });
-
-      async function login() {
-        clearError();
-        try {
-          const data = await memberApi("/api/member/login", {
-            method: "POST",
-            auth: false,
-            body: { username: username.value.trim(), password: password.value }
-          });
-          setMemberToken(data.token);
-          window.location.href = "/memberDashboard.html";
-        } catch (e) {
-          showError(e.message);
-        }
-      }
-
+      // REGISTER ONLY
       async function register() {
-        clearError();
+        errBox.style.display = "none";
+
         try {
-          const regUsername = document.getElementById("regUsername").value.trim();
-          const regPassword = document.getElementById("regPassword").value;
           const data = await memberApi("/api/member/register", {
             method: "POST",
             auth: false,
             body: {
               full_name: document.getElementById("fullName").value.trim(),
-              username: regUsername || username.value.trim(),
-              password: regPassword || password.value,
+              username: document.getElementById("username").value.trim(),
+              password: document.getElementById("password").value,
               membership_type: document.getElementById("membershipType").value,
               phone: document.getElementById("phone").value.trim() || null,
               email: document.getElementById("email").value.trim() || null,
               profile_picture: profilePictureData || null
             }
           });
+
           setMemberToken(data.token);
-          window.location.href = "/memberDashboard.html";
+
+          showSuccess("Account created successfully!");
+
+          // 🔥 Redirect after register
+          setTimeout(() => {
+            window.location.href = "/memberDashboard.html";
+          }, 1500);
+
         } catch (e) {
-          showError(e.message);
+          showError(e.message || "Registration failed");
         }
       }
 
-      document.getElementById("loginBtn").addEventListener("click", login);
       document.getElementById("registerBtn").addEventListener("click", register);
-      password.addEventListener("keydown", (ev) => {
-        if (ev.key === "Enter") login();
-      });
     </script>
   </body>
 </html>
-
