@@ -16,30 +16,23 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  console.time('Database Setup');
-  console.log('🔄 Connecting to database...');
-  const db = await openDb();
-  console.log('✅ Database connected');
+  console.time("Database Setup");
 
-  console.log('🔄 Initializing database...');
-  await initDb(db);
-  console.time('Database Setup');
+  let db = null;
 
-let db = null;
+  try {
+    console.log("🔄 Connecting to database...");
+    db = await openDb();
 
-try {
-  console.log('🔄 Connecting to database...');
-  db = await openDb();
+    console.log("🔄 Initializing database...");
+    await initDb(db);
 
-  console.log('🔄 Initializing database...');
-  await initDb(db);
+    console.log("✅ Database initialized");
+  } catch (err) {
+    console.error("❌ Database failed:", err.message);
+  }
 
-  console.log('✅ Database initialized');
-} catch (err) {
-  console.error('❌ Database failed:', err.message);
-}
-
-console.timeEnd('Database Setup');
+  console.timeEnd("Database Setup");
 
   const app = express();
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -47,37 +40,30 @@ console.timeEnd('Database Setup');
   app.use(express.json({ limit: "5mb" }));
   app.use(morgan("dev"));
 
-  const requireAuth = requireAuthFactory(db);
-  registerRoutes(app, db, requireAuth);
-
   if (db) {
-  const requireAuth = requireAuthFactory(db);
-  registerRoutes(app, db, requireAuth);
-} else {
-  console.warn("⚠️ Running without database");
-}
+    const requireAuth = requireAuthFactory(db);
+    registerRoutes(app, db, requireAuth);
+  } else {
+    console.warn("⚠️ Running without database");
+  }
 
-  // Background auto-freeze runner (optional; controlled by `account_freeze_settings.enabled`)
   setInterval(() => {
     try {
-      runAccountFreeze(db);
+      if (db) runAccountFreeze(db);
     } catch (e) {
       console.error("Auto-freeze runner failed:", e?.message || e);
     }
-  }, 6 * 60 * 60 * 1000); // every 6 hours
+  }, 6 * 60 * 60 * 1000);
 
-  // Serve the new UI
   const frontendPath = path.resolve(__dirname, "..", "..", "frontend");
   app.use("/", express.static(frontendPath));
 
-  // SPA-ish fallback: route unknown paths to login
   app.get(/.*/, (req, res) => {
     res.sendFile(path.join(frontendPath, "login.html"));
   });
 
   app.listen(process.env.PORT || config.port, () => {
-    console.log(`SmartGym running on http://localhost:${config.port}`);
-    console.log(`Login: admin / admin123`);
+    console.log("🚀 SmartGym running");
   });
 }
 
