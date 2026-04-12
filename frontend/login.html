@@ -18,7 +18,7 @@
         </div>
         <div class="login-right">
           <h2>Login</h2>
-          <div class="muted small">Use your admin/staff account.</div>
+          <div class="muted small">Use your registered account.</div>
 
           <label for="username">Username</label>
           <input id="username" placeholder="Enter username" autocomplete="username" />
@@ -37,32 +37,64 @@
     </div>
 
     <script type="module">
-      import { api, setToken, getToken } from "/assets/js/app.js";
+      import { api, setToken, getToken, clearToken } from "/assets/js/app.js";
 
       const errBox = document.getElementById("errBox");
       const username = document.getElementById("username");
       const password = document.getElementById("password");
 
-      if (getToken()) {
-        // If already logged in, go straight to dashboard
-        window.location.href = "/adminDashboard.html";
-      }
+      // Check existing session and redirect by role
+      async function redirectBasedOnRole() {
+        const token = getToken();
+        if (!token) return;
 
+        try {
+          const me = await api("/api/me"); // expects { user: { role: "admin"|"member" } }
+
+          if (me.user.role === "admin") {
+            window.location.href = "/adminDashboard.html";
+          } else if (me.user.role === "member") {
+            window.location.href = "/memberDashboard.html";
+          } else {
+            clearToken(); // unknown role
+          }
+        } catch {
+          clearToken();
+        }
+      }
+      redirectBasedOnRole();
+
+      // Fill default admin credentials
       document.getElementById("fillBtn").addEventListener("click", () => {
         username.value = "admin";
         password.value = "admin123";
       });
 
+      // Login function
       async function login() {
         errBox.style.display = "none";
+
         try {
           const data = await api("/api/auth/login", {
             method: "POST",
             auth: false,
-            body: { username: username.value.trim(), password: password.value }
+            body: {
+              username: username.value.trim(),
+              password: password.value
+            }
           });
+
+          // Save token
           setToken(data.token);
-          window.location.href = "/adminDashboard.html";
+
+          // Redirect based on role
+          if (data.user.role === "admin") {
+            window.location.href = "/adminDashboard.html";
+          } else if (data.user.role === "member") {
+            window.location.href = "/memberDashboard.html";
+          } else {
+            throw new Error("Unknown account type");
+          }
         } catch (e) {
           errBox.textContent = e.message || "Login failed";
           errBox.style.display = "block";
@@ -76,4 +108,3 @@
     </script>
   </body>
 </html>
-
