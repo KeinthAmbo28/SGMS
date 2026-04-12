@@ -12,10 +12,8 @@
         <div class="login-left">
           <img class="logo" src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo">
           <h1>Powerhouse Gym Management System</h1>
-          <p class="small" style="margin-top: 14px">
-            Default admin: <b>admin</b> / <b>admin123</b>
-          </p>
         </div>
+
         <div class="login-right">
           <h2>Login</h2>
           <div class="muted small">Use your registered account.</div>
@@ -28,7 +26,14 @@
 
           <div class="actions">
             <button class="btn btn-primary" id="loginBtn">Sign in</button>
-            <button class="btn btn-ghost" id="fillBtn" type="button">Fill admin</button>
+          </div>
+
+          <!-- 🔥 NEW OPTION -->
+          <div style="margin-top: 15px; text-align: center;">
+            <span class="small">No account?</span><br>
+            <a href="/memberLogin.html" class="btn btn-ghost" style="margin-top: 8px;">
+              Create Member Account
+            </a>
           </div>
 
           <div class="error" id="errBox"></div>
@@ -43,20 +48,18 @@
       const username = document.getElementById("username");
       const password = document.getElementById("password");
 
-      // Check existing session and redirect by role
+      // 🔥 Auto redirect if already logged in
       async function redirectBasedOnRole() {
         const token = getToken();
         if (!token) return;
 
         try {
-          const me = await api("/api/me"); // expects { user: { role: "admin"|"member" } }
+          const me = await api("/api/me");
 
           if (me.user.role === "admin") {
             window.location.href = "/adminDashboard.html";
-          } else if (me.user.role === "member") {
-            window.location.href = "/memberDashboard.html";
           } else {
-            clearToken(); // unknown role
+            window.location.href = "/memberDashboard.html";
           }
         } catch {
           clearToken();
@@ -64,13 +67,7 @@
       }
       redirectBasedOnRole();
 
-      // Fill default admin credentials
-      document.getElementById("fillBtn").addEventListener("click", () => {
-        username.value = "admin";
-        password.value = "admin123";
-      });
-
-      // Login function
+      // 🔐 Login
       async function login() {
         errBox.style.display = "none";
 
@@ -84,17 +81,15 @@
             }
           });
 
-          // Save token
           setToken(data.token);
 
-          // Redirect based on role
+          // 🔥 Role-based redirect
           if (data.user.role === "admin") {
             window.location.href = "/adminDashboard.html";
-          } else if (data.user.role === "member") {
-            window.location.href = "/memberDashboard.html";
           } else {
-            throw new Error("Unknown account type");
+            window.location.href = "/memberDashboard.html";
           }
+
         } catch (e) {
           errBox.textContent = e.message || "Login failed";
           errBox.style.display = "block";
