@@ -19,14 +19,13 @@ export function clearToken() {
 }
 
 // ==========================
-// API FUNCTION
+// API FUNCTION (🔥 FIXED)
 // ==========================
 export async function api(path, { method = "GET", body, auth = true } = {}) {
   const headers = {
     "Content-Type": "application/json"
   };
 
-  // 🔐 Attach token
   if (auth) {
     const token = getToken();
     if (token) {
@@ -34,42 +33,29 @@ export async function api(path, { method = "GET", body, auth = true } = {}) {
     }
   }
 
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  let data = null;
+
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined
-    });
+    data = await res.json();
+  } catch {}
 
-    let data = null;
+  if (!res.ok) {
+    const msg = data?.error || `Request failed (${res.status})`;
 
-    try {
-      data = await res.json();
-    } catch {
-      // ignore if no JSON
-    }
-
-    if (!res.ok) {
-      const msg = data?.error || `Request failed (${res.status})`;
-
-      // 🔥 AUTO LOGOUT if unauthorized
-      if (res.status === 401) {
-        clearToken();
-        window.location.href = "/login.html";
-      }
-
-      const err = new Error(msg);
-      err.status = res.status;
-      err.data = data;
-      throw err;
-    }
-
-    return data;
-
-  } catch (err) {
-    console.error("API ERROR:", err);
+    // 🔥 IMPORTANT: DO NOT AUTO REDIRECT HERE
+    const err = new Error(msg);
+    err.status = res.status;
+    err.data = data;
     throw err;
   }
+
+  return data;
 }
 
 // ==========================
@@ -78,14 +64,14 @@ export async function api(path, { method = "GET", body, auth = true } = {}) {
 export async function getCurrentUser() {
   try {
     const res = await api("/api/me");
-    return res.user; // expects { user: { id, role, ... } }
-  } catch (err) {
+    return res.user;
+  } catch {
     return null;
   }
 }
 
 // ==========================
-// REQUIRE SESSION (PROTECT PAGE)
+// REQUIRE SESSION
 // ==========================
 export async function requireSession() {
   const token = getToken();
@@ -95,19 +81,26 @@ export async function requireSession() {
     return null;
   }
 
-  const user = await getCurrentUser();
+  try {
+    const user = await getCurrentUser();
 
-  if (!user) {
+    if (!user) {
+      clearToken();
+      window.location.href = "/login.html";
+      return null;
+    }
+
+    return user;
+
+  } catch {
     clearToken();
     window.location.href = "/login.html";
     return null;
   }
-
-  return user;
 }
 
 // ==========================
-// ROLE PROTECTION (🔥 NEW)
+// ROLE PROTECTION
 // ==========================
 export async function requireRole(role) {
   const user = await requireSession();
@@ -115,7 +108,6 @@ export async function requireRole(role) {
   if (!user) return null;
 
   if (user.role !== role) {
-    // redirect wrong role
     if (user.role === "admin") {
       window.location.href = "/adminDashboard.html";
     } else {
@@ -127,8 +119,6 @@ export async function requireRole(role) {
   return user;
 }
 
-// ==========================
-// SIDEBAR
 // ==========================
 export function mountSidebar(activeKey) {
   const links = document.querySelectorAll("[data-nav]");
@@ -149,8 +139,6 @@ export function mountSidebar(activeKey) {
   }
 }
 
-// ==========================
-// FORMAT HELPERS
 // ==========================
 export function formatPeso(amount) {
   try {

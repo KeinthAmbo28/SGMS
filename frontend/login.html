@@ -34,61 +34,69 @@
     </div>
 
     <script type="module">
-      import { api, setToken, getToken, clearToken } from "/assets/js/app.js";
+import { api, setToken, getToken, clearToken } from "/assets/js/app.js";
 
-      const errBox = document.getElementById("errBox");
-      const username = document.getElementById("username");
-      const password = document.getElementById("password");
+const errBox = document.getElementById("errBox");
+const username = document.getElementById("username");
+const password = document.getElementById("password");
 
-      // Redirect if already logged in
-      async function redirectBasedOnRole() {
-        const token = getToken();
-        if (!token) return;
-        try {
-          const me = await api("/api/me");
-          if (me.user.role === "admin") {
-            window.location.href = "/adminDashboard.html";
-          } else {
-            window.location.href = "/memberDashboard.html";
-          }
-        } catch {
-          clearToken();
-        }
+// 🔥 SAFE REDIRECT (NO LOOP)
+async function redirectBasedOnRole() {
+  const token = getToken();
+  if (!token) return;
+
+  try {
+    const me = await api("/api/me");
+
+    if (me.user.role === "admin") {
+      window.location.href = "/adminDashboard.html";
+    } else if (me.user.role === "member") {
+      window.location.href = "/memberDashboard.html";
+    }
+
+  } catch {
+    clearToken(); // 🔥 prevents infinite loop
+  }
+}
+redirectBasedOnRole();
+
+// Go to member registration
+document.getElementById("createMemberBtn").addEventListener("click", () => {
+  window.location.href = "/memberLogin.html";
+});
+
+// LOGIN
+async function login() {
+  errBox.style.display = "none";
+
+  try {
+    const data = await api("/api/auth/login", {
+      method: "POST",
+      auth: false,
+      body: {
+        username: username.value.trim(),
+        password: password.value
       }
-      redirectBasedOnRole();
+    });
 
-      // Go to member registration page
-      document.getElementById("createMemberBtn").addEventListener("click", () => {
-        window.location.href = "/memberLogin.html";
-      });
+    setToken(data.token);
 
-      async function login() {
-        errBox.style.display = "none";
-        try {
-          const data = await api("/api/auth/login", {
-            method: "POST",
-            auth: false,
-            body: { username: username.value.trim(), password: password.value }
-          });
+    if (data.user.role === "admin") {
+      window.location.href = "/adminDashboard.html";
+    } else {
+      window.location.href = "/memberDashboard.html";
+    }
 
-          setToken(data.token);
+  } catch (e) {
+    errBox.textContent = e.message || "Login failed";
+    errBox.style.display = "block";
+  }
+}
 
-          // Redirect based on role
-          if (data.user.role === "admin") {
-            window.location.href = "/adminDashboard.html";
-          } else {
-            window.location.href = "/memberDashboard.html";
-          }
-        } catch (e) {
-          errBox.textContent = e.message || "Login failed";
-          errBox.style.display = "block";
-        }
-      }
-
-      document.getElementById("loginBtn").addEventListener("click", login);
-      password.addEventListener("keydown", (ev) => {
-        if (ev.key === "Enter") login();
-      });
-    </script>
+document.getElementById("loginBtn").addEventListener("click", login);
+password.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter") login();
+});
+</script>
   </body>
 </html>
