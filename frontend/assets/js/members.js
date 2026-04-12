@@ -35,12 +35,26 @@ function renderMembers(members) {
   for (const m of members) {
     const tr = document.createElement("tr");
     tr.style.cursor = "pointer";
+    const joinDate = m.join_date ? new Date(m.join_date) : null;
+    let expiryDate = "-";
+    if (m.expiration_date) {
+      expiryDate = new Date(m.expiration_date).toLocaleDateString('en-CA');
+    } else if (joinDate && !Number.isNaN(joinDate.getTime())) {
+      const expiry = new Date(joinDate.getTime());
+      if (m.membership_type === "monthly") {
+        expiry.setMonth(expiry.getMonth() + 1);
+      } else if (m.membership_type === "annual") {
+        expiry.setFullYear(expiry.getFullYear() + 1);
+      }
+      expiryDate = expiry.toLocaleDateString('en-CA');
+    }
     tr.innerHTML = `
       <td><b>${m.full_name}</b></td>
       <td>${m.membership_type}</td>
       <td>${m.trainer_name || "-"}</td>
       <td><span class="tag ${m.status === "active" ? "good" : "bad"}">${m.status}</span></td>
       <td>${m.join_date}</td>
+      <td><b>${expiryDate}</b></td>
     `;
     tr.addEventListener("click", () => fillForm(m));
     tbody.appendChild(tr);

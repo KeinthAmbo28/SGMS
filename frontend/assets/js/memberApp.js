@@ -1,4 +1,4 @@
-const STORAGE_KEY = "smartgym_member_token_v1";
+const STORAGE_KEY = "powerhousegym_member_token_v1";
 
 export function getMemberToken() {
   return localStorage.getItem(STORAGE_KEY) || "";

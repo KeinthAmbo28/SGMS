@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import fs from "fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { nanoid } from "nanoid";
 import { signToken, requireRole } from "./auth.js";
 import {
   attendanceCreateSchema,
@@ -71,43 +72,53 @@ export function registerRoutes(app, db, requireAuth) {
 
   // Member portal auth (separate endpoint for clarity in UI)
   app.post("/api/member/register", async (req, res) => {
-    const parsed = memberRegisterSchema.safeParse(req.body);
-    if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
+    try {
+      const parsed = memberRegisterSchema.safeParse(req.body);
+      if (!parsed.success) return badRequest(res, "Invalid input", parsed.error.flatten());
 
-    const [existsRows] = await db.execute("SELECT id FROM users WHERE username=?", [parsed.data.username]);
-    if (existsRows.length > 0) return res.status(409).json({ error: "Username already exists" });
+      const [existsRows] = await db.execute("SELECT id FROM users WHERE username=?", [parsed.data.username]);
+      if (existsRows.length > 0) return res.status(409).json({ error: "Username already exists" });
 
-    const join_date = new Date().toISOString().slice(0, 10);
-    const [memberResult] = await db.execute(
-      `
+      const join_date = new Date().toISOString().slice(0, 10);
+      const memberInsertSql = `
       INSERT INTO members
       (full_name, membership_type, join_date, status, assigned_trainer_id, phone, email, profile_picture, emergency_contact, notes)
       VALUES
       (?, ?, ?, 'active', NULL, ?, ?, NULL, NULL, NULL)
-    `,
-      [parsed.data.full_name, parsed.data.membership_type, join_date, parsed.data.phone ?? null, parsed.data.email ?? null, null]
-    );
-    const memberId = memberResult.insertId;
+    `;
+      const memberInsertParams = [parsed.data.full_name, parsed.data.membership_type, join_date, parsed.data.phone ?? null, parsed.data.email ?? null];
+      const [memberResult] = await db.execute(memberInsertSql, memberInsertParams);
+      const memberId = memberResult.insertId;
 
-    let profilePicturePath = null;
-    if (parsed.data.profile_picture) {
-      profilePicturePath = await saveMemberProfilePicture(parsed.data.profile_picture, memberId);
-      if (profilePicturePath) {
-        await db.execute("UPDATE members SET profile_picture=? WHERE id= ?", [profilePicturePath, memberId]);
+      let profilePicturePath = null;
+      if (parsed.data.profile_picture) {
+        profilePicturePath = await saveMemberProfilePicture(parsed.data.profile_picture, memberId);
+        if (profilePicturePath) {
+          await db.execute("UPDATE members SET profile_picture=? WHERE id= ?", [profilePicturePath, memberId]);
+        }
       }
+
+      const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+      const [userResult] = await db.execute(
+        "INSERT INTO users (username, password_hash, role, member_id) VALUES (?, ?, ?, ?)",
+        [parsed.data.username, passwordHash, "member", memberId]
+      );
+      const userId = userResult.insertId;
+      await db.execute("UPDATE users SET last_active_at=NOW() WHERE id=?", [userId]);
+
+      const user = { id: userId, username: parsed.data.username, role: "member" };
+      const token = signToken(user);
+      return ok(res, { token, user });
+    } catch (error) {
+      console.error("Member registration failed:", error?.message || error, {
+        body: req.body,
+        sql: error?.sql,
+        sqlMessage: error?.sqlMessage,
+        errno: error?.errno,
+        code: error?.code
+      });
+      return res.status(500).json({ error: "Internal server error" });
     }
-
-    const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-    const [userResult] = await db.execute(
-      "INSERT INTO users (username, password_hash, role, member_id) VALUES (?, ?, ?, ?)",
-      [parsed.data.username, passwordHash, "member", memberId]
-    );
-    const userId = userResult.insertId;
-    await db.execute("UPDATE users SET last_active_at=NOW() WHERE id=?", [userId]);
-
-    const user = { id: userId, username: parsed.data.username, role: "member" };
-    const token = signToken(user);
-    return ok(res, { token, user });
   });
 
   app.post("/api/member/login", async (req, res) => {
@@ -301,7 +312,12 @@ export function registerRoutes(app, db, requireAuth) {
   app.get("/api/members", requireAuth, async (req, res) => {
     const [rows] = await db.execute(
       `
-        SELECT m.*, t.full_name as trainer_name
+        SELECT m.*, 
+               t.full_name as trainer_name,
+               CASE 
+                 WHEN m.membership_type = 'monthly' THEN DATE_ADD(m.join_date, INTERVAL 1 MONTH)
+                 WHEN m.membership_type = 'annual' THEN DATE_ADD(m.join_date, INTERVAL 1 YEAR)
+               END as expiration_date
         FROM members m
         LEFT JOIN trainers t ON t.id = m.assigned_trainer_id
         ORDER BY m.created_at DESC

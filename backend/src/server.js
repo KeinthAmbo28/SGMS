@@ -37,11 +37,9 @@ async function startServer() {
 
   // Background auto-freeze runner (optional; controlled by `account_freeze_settings.enabled`)
   setInterval(() => {
-    try {
-      runAccountFreeze(db);
-    } catch (e) {
+    void runAccountFreeze(db).catch((e) => {
       console.error("Auto-freeze runner failed:", e?.message || e);
-    }
+    });
   }, 6 * 60 * 60 * 1000); // every 6 hours
 
   // Serve the new UI
@@ -54,7 +52,7 @@ async function startServer() {
   });
 
   app.listen(config.port, () => {
-    console.log(`SmartGym running on http://localhost:${config.port}`);
+    console.log(`Powerhouse Gym running on http://localhost:${config.port}`);
     console.log(`Login: admin / admin123`);
   });
 }

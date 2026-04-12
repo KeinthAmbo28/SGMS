@@ -2,11 +2,17 @@ import { api, formatPeso, mountSidebar, requireSession } from "/assets/js/app.js
 
 let methodChart = null;
 
+function printReports() {
+  window.print();
+}
+
 async function main() {
   mountSidebar("reports");
   const user = await requireSession();
   if (!user) return;
   document.getElementById("userLabel").textContent = user.username;
+
+  document.getElementById("printReportsBtn").addEventListener("click", printReports);
 
   const data = await api("/api/reports/overview");
 
@@ -30,7 +36,7 @@ async function main() {
         {
           label: "Total",
           data: values,
-          backgroundColor: "#7a1f1f",
+          backgroundColor: "#ef4444",
           borderRadius: 6
         }
       ]

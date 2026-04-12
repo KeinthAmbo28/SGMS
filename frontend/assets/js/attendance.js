@@ -3,18 +3,6 @@ import { api, mountSidebar, requireSession } from "/assets/js/app.js";
 const el = (id) => document.getElementById(id);
 const parseLocalDate = (value) => value ? new Date(value.replace(" ", "T")) : null;
 
-async function loadMembers() {
-  const { members } = await api("/api/members");
-  const sel = el("memberSelect");
-  sel.innerHTML = "";
-  for (const m of members) {
-    const opt = document.createElement("option");
-    opt.value = m.id;
-    opt.textContent = m.full_name;
-    sel.appendChild(opt);
-  }
-}
-
 function render(attendance) {
   const tbody = el("tbody");
   tbody.innerHTML = "";
@@ -41,22 +29,8 @@ async function refresh() {
   render(attendance);
 }
 
-async function checkIn() {
-  el("msg").textContent = "";
-  try {
-    await api("/api/attendance", {
-      method: "POST",
-      body: {
-        member_id: el("memberSelect").value,
-        check_in_at: el("checkInAt").value.trim() || undefined
-      }
-    });
-    el("checkInAt").value = "";
-    el("msg").textContent = "Check-in recorded.";
-    await refresh();
-  } catch (e) {
-    el("msg").textContent = e.message;
-  }
+function printAttendance() {
+  window.print();
 }
 
 async function main() {
@@ -65,9 +39,8 @@ async function main() {
   if (!user) return;
   el("userLabel").textContent = user.username;
 
-  await loadMembers();
   await refresh();
-  el("checkInBtn").addEventListener("click", checkIn);
+  el("printAttendanceBtn").addEventListener("click", printAttendance);
 }
 
 main();

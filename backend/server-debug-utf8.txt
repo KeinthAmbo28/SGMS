@@ -1,0 +1,7 @@
+≡ƒöä Connecting to database...
+Γ£à Database connected
+≡ƒöä Initializing database...
+Database Setup: 210.699ms
+Γ£à Database initialized
+Powerhouse Gym running on http://localhost:5050
+Login: admin / admin123

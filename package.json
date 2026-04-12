@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "node backend/src/server.js",
     "start": "node backend/src/server.js"
-  }
+  },
+  "workspaces": [
+    "backend"
+  ]
 }
 

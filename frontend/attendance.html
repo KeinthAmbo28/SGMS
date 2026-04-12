@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SmartGym | Attendance</title>
+    <title>Powerhouse Gym | Attendance</title>
     <link rel="stylesheet" href="/assets/css/styles.css" />
     <link
       rel="stylesheet"
@@ -14,7 +14,10 @@
   <body>
     <div class="app">
       <aside class="sidebar">
-        <div class="brand">SMARTGYM</div>
+        <div class="brand">
+          <img src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo" />
+          <span>POWERHOUSE GYM</span>
+        </div>
         <nav class="nav">
           <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
           <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
@@ -36,26 +39,12 @@
           <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
         </div>
 
-        <div class="grid-panels" style="grid-template-columns: 1fr 1.2fr">
-          <section class="panel">
-            <h3 style="text-align:left">Check-in</h3>
-            <div class="muted small">Record a member check-in.</div>
-
-            <label>Member</label>
-            <select id="memberSelect"></select>
-
-            <label>Check-in time (optional)</label>
-            <input id="checkInAt" placeholder="Leave blank for now" />
-            <div class="small muted" style="margin-top:6px">Tip: ISO format like <b>2026-03-17T09:00:00Z</b></div>
-
-            <div class="actions">
-              <button class="btn btn-primary" id="checkInBtn"><i class="fa-solid fa-check"></i>Check in</button>
-            </div>
-            <div class="small muted" id="msg" style="margin-top:10px"></div>
-          </section>
-
-          <section class="panel">
-            <h3 style="text-align:left">Recent Attendance</h3>
+        <div class="grid-panels" style="grid-template-columns: 1fr">
+          <div class="panel-toolbar">
+            <button class="btn btn-primary" id="printAttendanceBtn"><i class="fa-solid fa-print"></i>Print</button>
+          </div>
+          <section class="panel printable">
+            <h3 style="text-align:left; margin:0 0 12px">Recent Attendance</h3>
             <div style="overflow:auto; margin-top:10px">
               <table>
                 <thead>

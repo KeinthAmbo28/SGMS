@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SmartGym | Reports</title>
+    <title>Powerhouse Gym | Reports</title>
     <link rel="stylesheet" href="/assets/css/styles.css" />
     <link
       rel="stylesheet"
@@ -15,7 +15,10 @@
   <body>
     <div class="app">
       <aside class="sidebar">
-        <div class="brand">SMARTGYM</div>
+        <div class="brand">
+          <img src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo" />
+          <span>POWERHOUSE GYM</span>
+        </div>
         <nav class="nav">
           <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
           <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
@@ -32,17 +35,22 @@
       </aside>
 
       <main class="main">
-        <div class="topbar">
+        <div class="topbar" style="display:flex; align-items:center; justify-content:space-between; gap:16px">
           <div class="page-title">REPORTS</div>
-          <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
+          <div style="display:flex; align-items:center; gap:12px">
+            <div class="user-pill"><div id="userLabel">Admin</div><div class="avatar"></div></div>
+          </div>
         </div>
 
+        <div class="panel-toolbar">
+          <button class="btn btn-primary" id="printReportsBtn"><i class="fa-solid fa-print"></i>Print</button>
+        </div>
         <div class="grid-panels" style="grid-template-columns: 1fr 1fr">
-          <section class="panel">
-            <h3>Payments by Method (30 days)</h3>
+          <section class="panel printable">
+            <h3 style="text-align:left; margin:0 0 12px">Payments by Method (30 days)</h3>
             <canvas id="methodChart" height="120"></canvas>
           </section>
-          <section class="panel">
+          <section class="panel printable">
             <h3 style="text-align:left">Top Members (Check-ins, 30 days)</h3>
             <div style="overflow:auto; margin-top:10px">
               <table>

@@ -52,8 +52,8 @@ async function main() {
         {
           label: "Attendance",
           data: att.values,
-          borderColor: "#7a1f1f",
-          backgroundColor: "rgba(122,31,31,.16)",
+          borderColor: "#ef4444",
+          backgroundColor: "rgba(239,68,68,.12)",
           tension: 0.35,
           fill: true,
           pointRadius: 0
@@ -77,7 +77,7 @@ async function main() {
       datasets: [
         {
           data: [summary.membershipType.annual, summary.membershipType.monthly],
-          backgroundColor: ["#7a1f1f", "#111827"],
+          backgroundColor: ["#ef4444", "#94a3b8"],
           borderWidth: 0
         }
       ]
@@ -93,7 +93,7 @@ async function main() {
         {
           label: "Payments",
           data: pay.values,
-          backgroundColor: "#7a1f1f",
+          backgroundColor: "#ef4444",
           borderRadius: 6
         }
       ]

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SmartGym | Settings</title>
+    <title>Powerhouse Gym | Settings</title>
     <link rel="stylesheet" href="/assets/css/styles.css" />
     <link
       rel="stylesheet"
@@ -14,7 +14,10 @@
   <body>
     <div class="app">
       <aside class="sidebar">
-        <div class="brand">SMARTGYM</div>
+        <div class="brand">
+          <img src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo" />
+          <span>POWERHOUSE GYM</span>
+        </div>
         <nav class="nav">
           <a data-nav="dashboard" href="/adminDashboard.html"><i class="fa-solid fa-house"></i>Dashboard</a>
           <a data-nav="members" href="/members.html"><i class="fa-solid fa-users"></i>Members</a>
@@ -105,22 +108,22 @@
             <div class="actions" style="flex-direction:column; align-items:stretch">
               <button class="btn btn-danger btn-small" id="resetBtn">Reset All Passwords</button>
               <button class="btn btn-primary btn-small" id="backupBtn">Download Backup Data</button>
-              <div style="margin-top:14px; border-top: 1px solid rgba(255,255,255,0.08); padding-top:14px">
-                <h3 style="text-align:left; margin-top:0; margin-bottom:10px; font-size:16px">Account Freezing</h3>
-                <label style="display:flex; align-items:center; gap:8px">
+              <div style="margin-top:8px; border-top: 1px solid #e2e8f0; padding-top:8px">
+                <h3 style="text-align:left; margin:0 0 6px 0; font-size:14px; font-weight:700">Account Freezing</h3>
+                <label style="display:flex; align-items:center; gap:6px; margin:4px 0; font-size:12px">
                   <input id="freezeEnabled" type="checkbox" />
                   Enable auto-freeze
                 </label>
 
-                <label style="margin-top:10px">Inactive for (days)</label>
-                <input id="freezeDays" type="number" min="1" placeholder="e.g. 30" />
+                <label style="margin:6px 0 2px 0; font-size:12px">Inactive for (days)</label>
+                <input id="freezeDays" type="number" min="1" placeholder="e.g. 30" style="margin-bottom:6px" />
 
-                <label style="display:flex; align-items:center; gap:8px; margin-top:10px">
+                <label style="display:flex; align-items:center; gap:6px; margin:6px 0; font-size:12px">
                   <input id="freezeNeverUsed" type="checkbox" />
                   Include accounts never used
                 </label>
 
-                <div class="actions" style="flex-direction:column; align-items:stretch; margin-top:12px">
+                <div class="actions" style="flex-direction:column; align-items:stretch; gap:4px; margin:8px 0 0 0">
                   <button class="btn btn-primary btn-small" id="saveFreezeSettingsBtn">Save</button>
                   <button class="btn btn-ghost btn-small" id="freezeNowBtn">Freeze Now</button>
                 </div>
