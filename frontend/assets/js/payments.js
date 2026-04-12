@@ -28,7 +28,7 @@ function render(payments) {
       <td><b>${p.member_name}</b></td>
       <td>${formatPeso(p.amount)}</td>
       <td>${p.method}</td>
-      <td>${new Date(p.paid_at).toLocaleString()}</td>
+      <td>${p.paid_at ? new Date(p.paid_at).toLocaleString() : "-"}</td>
     `;
     tbody.appendChild(tr);
   }
@@ -46,24 +46,39 @@ async function refresh() {
 
 async function addPayment() {
   el("msg").textContent = "";
+
   try {
-    // Convert empty amount to 0 to avoid backend errors
-    const amount = Number(el("amount").value) || 0;
+    const memberId = el("memberSelect").value;
+    const amount = Number(el("amount").value);
+    if (!memberId || !amount || amount <= 0) {
+      el("msg").textContent = "Please select a member and enter a valid amount.";
+      return;
+    }
+
+    // Validate paid_at
+    let paidAt = el("paidAt").value.trim();
+    if (!paidAt) paidAt = null;
+    else {
+      const date = new Date(paidAt);
+      if (isNaN(date.getTime())) paidAt = null;
+      else paidAt = date.toISOString().slice(0, 19).replace("T", " ");
+    }
 
     await api("/api/payments", {
       method: "POST",
       body: {
-        member_id: el("memberSelect").value,
-        amount: amount,
+        member_id: memberId,
+        amount,
         method: el("method").value,
-        paid_at: el("paidAt").value.trim() || undefined
+        paid_at: paidAt
       }
     });
 
     el("amount").value = "";
     el("paidAt").value = "";
-    el("msg").textContent = "Payment recorded.";
+    el("msg").textContent = "Payment recorded successfully!";
     await refresh();
+
   } catch (e) {
     console.error("Error adding payment:", e);
     el("msg").textContent = e.data?.error || e.message || "Failed to record payment.";
@@ -74,6 +89,7 @@ async function main() {
   mountSidebar("payments");
   const user = await requireSession();
   if (!user) return;
+
   el("userLabel").textContent = user.username;
 
   await loadMembers();
