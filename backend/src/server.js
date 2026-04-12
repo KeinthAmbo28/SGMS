@@ -23,8 +23,23 @@ async function startServer() {
 
   console.log('🔄 Initializing database...');
   await initDb(db);
-  console.timeEnd('Database Setup');
+  console.time('Database Setup');
+
+let db = null;
+
+try {
+  console.log('🔄 Connecting to database...');
+  db = await openDb();
+
+  console.log('🔄 Initializing database...');
+  await initDb(db);
+
   console.log('✅ Database initialized');
+} catch (err) {
+  console.error('❌ Database failed:', err.message);
+}
+
+console.timeEnd('Database Setup');
 
   const app = express();
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -34,6 +49,13 @@ async function startServer() {
 
   const requireAuth = requireAuthFactory(db);
   registerRoutes(app, db, requireAuth);
+
+  if (db) {
+  const requireAuth = requireAuthFactory(db);
+  registerRoutes(app, db, requireAuth);
+} else {
+  console.warn("⚠️ Running without database");
+}
 
   // Background auto-freeze runner (optional; controlled by `account_freeze_settings.enabled`)
   setInterval(() => {
@@ -53,7 +75,7 @@ async function startServer() {
     res.sendFile(path.join(frontendPath, "login.html"));
   });
 
-  app.listen(config.port, () => {
+  app.listen(process.env.PORT || config.port, () => {
     console.log(`SmartGym running on http://localhost:${config.port}`);
     console.log(`Login: admin / admin123`);
   });
