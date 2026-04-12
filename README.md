@@ -45,7 +45,7 @@ npm start
 3. Open in browser:
 
 - **Admin login**: `http://localhost:5050/login.html`
-- **Member login**: `http://localhost:5050/memberLogin.html`
+- **Member login**: `http://localhost:5050/memberLogin.html`   
 
 > If old attendance timestamps were stored with the wrong timezone, you can repair them with:
 >
