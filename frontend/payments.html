@@ -40,20 +40,21 @@
         </div>
 
         <div class="grid-panels" style="grid-template-columns: 1fr 1.2fr">
+          <!-- RECORD PAYMENT PANEL -->
           <section class="panel">
             <h3 style="text-align:left">Record Payment</h3>
             <div class="muted small">Store payment transactions for reporting.</div>
 
-            <label>Member</label>
+            <label for="memberSelect">Member</label>
             <select id="memberSelect"></select>
 
             <div class="form-row">
               <div>
-                <label>Amount</label>
+                <label for="amount">Amount</label>
                 <input id="amount" type="number" step="0.01" placeholder="0.00" />
               </div>
               <div>
-                <label>Method</label>
+                <label for="method">Method</label>
                 <select id="method">
                   <option value="cash">Cash</option>
                   <option value="card">Card</option>
@@ -63,15 +64,17 @@
               </div>
             </div>
 
-            <label>Paid at (optional)</label>
-            <input id="paidAt" placeholder="Leave blank for now" />
+            <label for="paidAt">Paid at (optional)</label>
+            <input id="paidAt" type="datetime-local" placeholder="Leave blank for now" />
 
             <div class="actions">
               <button class="btn btn-primary" id="payBtn"><i class="fa-solid fa-plus"></i>Add payment</button>
             </div>
+
             <div class="small muted" id="msg" style="margin-top:10px"></div>
           </section>
 
+          <!-- RECENT PAYMENTS PANEL -->
           <section class="panel">
             <h3 style="text-align:left">Recent Payments</h3>
             <div style="overflow:auto; margin-top:10px">
@@ -95,4 +98,3 @@
     <script type="module" src="/assets/js/payments.js"></script>
   </body>
 </html>
-
