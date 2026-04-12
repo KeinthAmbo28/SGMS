@@ -1,5 +1,5 @@
 import express from "express";
-
+import { openDb } from "./db/connection.js";
 async function startServer() {
   let db = null;
 
