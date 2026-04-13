@@ -1,5 +1,17 @@
 import { api, requireRole, clearToken } from "/assets/js/app.js";
 
+// Define requireSession if not already in app.js
+async function requireSession() {
+  try {
+    const user = await api("/api/member/me");
+    return user;
+  } catch (e) {
+    // If API fails, redirect to login
+    window.location.href = "/login.html";
+    return null;
+  }
+}
+
 const el = (id) => document.getElementById(id);
 
 function setMsg(id, text) {
@@ -12,13 +24,11 @@ function renderAttendance(rows) {
 
   for (const r of rows) {
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
       <td>${r.check_in_at || "-"}</td>
       <td>${r.check_out_at || "-"}</td>
       <td>${r.check_out_at ? "Completed" : "Checked in"}</td>
     `;
-
     tbody.appendChild(tr);
   }
 }
@@ -35,7 +45,7 @@ async function refresh() {
   renderAttendance(att.attendance);
 }
 
-async function checkIn() {
+async function checkIn() {  
   try {
     await api("/api/member/check-in", { method: "POST" });
     await refresh();
