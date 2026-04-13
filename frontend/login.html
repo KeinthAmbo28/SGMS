@@ -40,8 +40,8 @@ const errBox = document.getElementById("errBox");
 const username = document.getElementById("username");
 const password = document.getElementById("password");
 
-// 🔥 SAFE REDIRECT (NO LOOP)
-async function redirectBasedOnRole() {
+// AUTO REDIRECT
+(async function () {
   const token = getToken();
   if (!token) return;
 
@@ -50,20 +50,13 @@ async function redirectBasedOnRole() {
 
     if (me.user.role === "admin") {
       window.location.href = "/adminDashboard.html";
-    } else if (me.user.role === "member") {
+    } else {
       window.location.href = "/memberDashboard.html";
     }
-
   } catch {
-    clearToken(); // 🔥 prevents infinite loop
+    clearToken();
   }
-}
-redirectBasedOnRole();
-
-// Go to member registration
-document.getElementById("createMemberBtn").addEventListener("click", () => {
-  window.location.href = "/memberLogin.html";
-});
+})();
 
 // LOGIN
 async function login() {
@@ -94,9 +87,6 @@ async function login() {
 }
 
 document.getElementById("loginBtn").addEventListener("click", login);
-password.addEventListener("keydown", (ev) => {
-  if (ev.key === "Enter") login();
-});
 </script>
   </body>
 </html>

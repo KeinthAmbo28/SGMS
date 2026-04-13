@@ -68,7 +68,7 @@
 </div>
 
 <script type="module">
-import { memberApi, setMemberToken, getMemberToken } from "/assets/js/memberApp.js";
+import { api, setToken, getToken } from "/assets/js/app.js";
 
 const errBox = document.getElementById("errBox");
 const successBox = document.getElementById("successBox");
@@ -103,10 +103,12 @@ function setProfilePreview(src){
 profilePictureInput.addEventListener("change", (event)=>{
   const file = event.target.files?.[0];
   if(!file) return;
+
   if(!file.type.startsWith("image/")){
     showError("Please select a valid image.");
     return;
   }
+
   const reader = new FileReader();
   reader.onload = ()=> {
     profilePictureData = reader.result;
@@ -115,16 +117,17 @@ profilePictureInput.addEventListener("change", (event)=>{
   reader.readAsDataURL(file);
 });
 
-// Auto redirect if already logged in
-if(getMemberToken()){
+// ✅ AUTO REDIRECT (FIXED)
+if(getToken()){
   window.location.href = "/memberDashboard.html";
 }
 
-// Register function
+// ✅ REGISTER FUNCTION (FIXED)
 async function register(){
   errBox.style.display = "none";
+
   try{
-    const data = await memberApi("/api/member/register", {
+    const data = await api("/api/member/register", {
       method: "POST",
       auth: false,
       body: {
@@ -138,9 +141,13 @@ async function register(){
       }
     });
 
-    setMemberToken(data.token);
+    // ✅ SAVE USING MAIN TOKEN SYSTEM
+    setToken(data.token);
+
     showSuccess("Account created successfully! Redirecting...");
-    setTimeout(()=> window.location.href="/memberDashboard.html", 1000);
+    setTimeout(()=>{
+      window.location.href = "/memberDashboard.html";
+    }, 1000);
 
   }catch(e){
     showError(e.message || "Registration failed");
