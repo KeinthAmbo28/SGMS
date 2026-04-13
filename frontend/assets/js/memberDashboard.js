@@ -1,113 +1,43 @@
-import { api, requireRole, clearToken, getToken, setToken } from "/assets/js/app.js";
+import { api, clearToken, getToken } from "/assets/js/app.js";
 
-// --------------------------
-// DASHBOARD UTILS
-// --------------------------
-const el = (id) => document.getElementById(id);
+const el = id => document.getElementById(id);
 
-function setMsg(id, text) {
-  el(id).textContent = text || "";
+async function requireSession(){
+  const token = getToken();
+  if(!token){ window.location.href="/memberLogin.html"; return null; }
+  try{ const res = await api("/api/member/me"); return res.member || res.user; }
+  catch(e){ clearToken(); window.location.href="/memberLogin.html"; return null; }
 }
 
-function renderAttendance(rows) {
-  const tbody = el("attTbody");
-  tbody.innerHTML = "";
+function setMsg(id,msg){ const e = el(id); if(e) e.textContent = msg||""; }
 
-  for (const r of rows) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.check_in_at || "-"}</td>
-      <td>${r.check_out_at || "-"}</td>
-      <td>${r.check_out_at ? "Completed" : "Checked in"}</td>
-    `;
+function renderAttendance(rows){
+  const tbody = el("attTbody"); tbody.innerHTML="";
+  for(const r of rows){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${r.check_in_at||"-"}</td><td>${r.check_out_at||"-"}</td><td>${r.check_out_at?"Completed":"Checked in"}</td>`;
     tbody.appendChild(tr);
   }
 }
 
-// --------------------------
-// REFRESH DASHBOARD DATA
-// --------------------------
-async function refresh() {
-  try {
+async function refresh(){
+  try{
     const me = await api("/api/member/me");
-
-    el("memberName").textContent =
-      me.member?.full_name || me.user?.username || "Member";
-
+    el("memberName").textContent = me.member?.full_name || me.user?.username || "Member";
     el("memberAvatar").src = me.member?.profile_picture || "";
-
     const att = await api("/api/member/attendance");
     renderAttendance(att.attendance);
-  } catch (e) {
-    console.error("Failed to refresh dashboard:", e);
-    clearToken();
-    window.location.href = "/memberLogin.html"; // redirect if session invalid
-  }
+  } catch(e){ clearToken(); window.location.href="/memberLogin.html"; }
 }
 
-// --------------------------
-// CHECK-IN / CHECK-OUT
-// --------------------------
-async function checkIn() {  
-  try {
-    await api("/api/member/check-in", { method: "POST" });
-    await refresh();
-    setMsg("checkMsg", "Checked in successfully!");
-  } catch (e) {
-    setMsg("checkMsg", e.message);
-  }
-}
+async function checkIn(){ try{ await api("/api/member/check-in",{method:"POST"}); await refresh(); setMsg("checkMsg","Checked in"); }catch(e){setMsg("checkMsg",e.message);} }
+async function checkOut(){ try{ await api("/api/member/check-out",{method:"POST"}); await refresh(); setMsg("checkMsg","Checked out"); }catch(e){setMsg("checkMsg",e.message);} }
 
-async function checkOut() {
-  try {
-    await api("/api/member/check-out", { method: "POST" });
-    await refresh();
-    setMsg("checkMsg", "Checked out successfully!");
-  } catch (e) {
-    setMsg("checkMsg", e.message);
-  }
-}
-
-// --------------------------
-// SESSION CHECK
-// --------------------------
-async function requireSession() {
-  const token = getToken();
-
-  if (!token) {
-    window.location.href = "/memberLogin.html"; // redirect if no token
-    return null;
-  }
-
-  try {
-    const res = await api("/api/member/me");
-    return res.user || res.member; // return user/member info
-  } catch (e) {
-    console.warn("Invalid session, redirecting to login.");
-    clearToken();
-    window.location.href = "/memberLogin.html";
-    return null;
-  }
-}
-
-// --------------------------
-// MAIN DASHBOARD INIT
-// --------------------------
-async function main() {
-  const user = await requireSession();
-  if (!user) return; // already redirected if no session
-
-  // Logout button
-  el("memberLogoutBtn").addEventListener("click", () => {
-    clearToken();
-    window.location.href = "/memberLogin.html";
-  });
-
-  // Check-in / Check-out buttons
-  el("checkInBtn").addEventListener("click", checkIn);
-  el("checkOutBtn").addEventListener("click", checkOut);
-
-  // Initial data refresh
+async function main(){
+  const user = await requireSession(); if(!user) return;
+  const logoutBtn = el("memberLogoutBtn"); if(logoutBtn) logoutBtn.addEventListener("click",()=>{ clearToken(); window.location.href="/memberLogin.html"; });
+  const checkInBtn = el("checkInBtn"); if(checkInBtn) checkInBtn.addEventListener("click",checkIn);
+  const checkOutBtn = el("checkOutBtn"); if(checkOutBtn) checkOutBtn.addEventListener("click",checkOut);
   await refresh();
 }
 

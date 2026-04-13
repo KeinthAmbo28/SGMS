@@ -70,91 +70,41 @@
 <script type="module">
 import { api, setToken, getToken } from "/assets/js/app.js";
 
-const errBox = document.getElementById("errBox");
-const successBox = document.getElementById("successBox");
-const profilePictureInput = document.getElementById("profilePicture");
-const profilePreview = document.getElementById("profilePreview");
-const profilePreviewImg = document.getElementById("profilePreviewImg");
+const el = id => document.getElementById(id);
+const errBox = el("errBox");
+const successBox = el("successBox");
 
-let profilePictureData = null;
+if(getToken()) window.location.href="/memberDashboard.html";
 
-function showError(msg){
-  errBox.textContent = msg;
-  errBox.style.display = "block";
-  successBox.style.display = "none";
-}
+function showError(msg){ errBox.textContent = msg; successBox.textContent=""; }
+function showSuccess(msg){ successBox.textContent = msg; errBox.textContent=""; }
 
-function showSuccess(msg){
-  successBox.textContent = msg;
-  successBox.style.display = "block";
-  errBox.style.display = "none";
-}
-
-function setProfilePreview(src){
-  if(src){
-    profilePreviewImg.src = src;
-    profilePreview.style.display = "block";
-  } else {
-    profilePreview.style.display = "none";
-  }
-}
-
-// Preview image
-profilePictureInput.addEventListener("change", (event)=>{
-  const file = event.target.files?.[0];
-  if(!file) return;
-
-  if(!file.type.startsWith("image/")){
-    showError("Please select a valid image.");
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = ()=> {
-    profilePictureData = reader.result;
-    setProfilePreview(profilePictureData);
-  };
-  reader.readAsDataURL(file);
-});
-
-// ✅ AUTO REDIRECT (FIXED)
-if(getToken()){
-  window.location.href = "/memberDashboard.html";
-}
-
-// ✅ REGISTER FUNCTION (FIXED)
 async function register(){
-  errBox.style.display = "none";
-
+  showError("");
   try{
-    const data = await api("/api/member/register", {
-      method: "POST",
-      auth: false,
-      body: {
-        full_name: document.getElementById("fullName").value.trim(),
-        username: document.getElementById("username").value.trim(),
-        password: document.getElementById("password").value,
-        membership_type: document.getElementById("membershipType").value,
-        phone: document.getElementById("phone").value.trim() || null,
-        email: document.getElementById("email").value.trim() || null,
-        profile_picture: profilePictureData || null
+    const res = await api("/api/member/register", {
+      method:"POST",
+      auth:false,
+      body:{
+        full_name: el("fullName").value.trim(),
+        username: el("username").value.trim(),
+        password: el("password").value,
+        membership_type: el("membershipType").value,
+        phone: el("phone").value.trim() || null,
+        email: el("email").value.trim() || null
       }
     });
 
-    // ✅ SAVE USING MAIN TOKEN SYSTEM
-    setToken(data.token);
+    setToken(res.token);
+    showSuccess("Account created! Redirecting...");
+    setTimeout(()=> window.location.href="/memberDashboard.html", 1000);
 
-    showSuccess("Account created successfully! Redirecting...");
-    setTimeout(()=>{
-      window.location.href = "/memberDashboard.html";
-    }, 1000);
-
-  }catch(e){
+  } catch(e){
     showError(e.message || "Registration failed");
   }
 }
 
-document.getElementById("registerBtn").addEventListener("click", register);
+el("registerBtn").addEventListener("click", register);
 </script>
 </body>
 </html>
