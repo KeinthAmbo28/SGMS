@@ -24,7 +24,7 @@ function renderAttendance(rows) {
 }
 
 async function refresh() {
-  const me = await api("/api/me");
+  const me = await api("/api/member/me");
 
   el("memberName").textContent =
     me.member?.full_name || me.user?.username || "Member";
@@ -54,7 +54,7 @@ async function checkOut() {
 }
 
 async function main() {
-  const user = await requireRole("member");
+  const user = await requireSession();
   if (!user) return;
 
   el("memberLogoutBtn").addEventListener("click", () => {
