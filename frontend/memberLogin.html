@@ -7,90 +7,79 @@
 <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
-<div class="login-wrap">
-  <div class="login-card">
-    <h1>Powerhouse Gym</h1>
+<h1>Powerhouse Gym</h1>
 
-    <!-- LOGIN FORM -->
-    <div id="loginForm">
-      <h2>Login</h2>
-      <input id="loginUsername" placeholder="Username">
-      <input id="loginPassword" type="password" placeholder="Password">
-      <button id="loginBtn">Sign In</button>
-      <button id="showRegisterBtn">Create Member Account</button>
-      <div id="loginErr" style="color:red"></div>
-    </div>
+<!-- LOGIN FORM -->
+<div id="loginForm">
+  <h2>Login</h2>
+  <input id="loginUsername" placeholder="Username">
+  <input id="loginPassword" type="password" placeholder="Password">
+  <button id="loginBtn">Sign In</button>
+  <button id="showRegisterBtn">Create Member Account</button>
+  <div id="loginErr" style="color:red"></div>
+</div>
 
-    <!-- REGISTRATION FORM -->
-    <div id="registerForm" style="display:none;">
-      <h2>Register</h2>
-      <input id="regFullName" placeholder="Full Name">
-      <input id="regUsername" placeholder="Username">
-      <input id="regPassword" type="password" placeholder="Password">
-      <select id="regMembership">
-        <option value="monthly">Monthly</option>
-        <option value="annual">Annual</option>
-      </select>
-      <input id="regPhone" placeholder="Phone">
-      <input id="regEmail" placeholder="Email">
-      <button id="registerBtn">Create Account</button>
-      <button id="showLoginBtn">Back to Login</button>
-      <div id="regErr" style="color:red"></div>
-      <div id="regSuccess" style="color:green"></div>
-    </div>
-  </div>
+<!-- REGISTRATION FORM -->
+<div id="registerForm" style="display:none;">
+  <h2>Register</h2>
+  <input id="regFullName" placeholder="Full Name">
+  <input id="regUsername" placeholder="Username">
+  <input id="regPassword" type="password" placeholder="Password">
+  <select id="regMembership">
+    <option value="monthly">Monthly</option>
+    <option value="annual">Annual</option>
+  </select>
+  <input id="regPhone" placeholder="Phone">
+  <input id="regEmail" placeholder="Email">
+  <button id="registerBtn">Create Account</button>
+  <button id="showLoginBtn">Back to Login</button>
+  <div id="regErr" style="color:red"></div>
+  <div id="regSuccess" style="color:green"></div>
 </div>
 
 <script type="module">
 import { api, setToken, getToken } from "/assets/js/app.js";
 
-// Redirect if already logged in
 if(getToken()) window.location.href="/memberDashboard.html";
 
-// --- SHOW / HIDE FORMS ---
+// Show/hide forms
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
-
 document.getElementById("showRegisterBtn").addEventListener("click", ()=>{
-  loginForm.style.display="none";
-  registerForm.style.display="block";
+  loginForm.style.display="none"; registerForm.style.display="block";
 });
 document.getElementById("showLoginBtn").addEventListener("click", ()=>{
-  loginForm.style.display="block";
-  registerForm.style.display="none";
+  loginForm.style.display="block"; registerForm.style.display="none";
 });
 
-// --- LOGIN ---
+// LOGIN
 const loginErr = document.getElementById("loginErr");
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
-  loginErr.textContent = "";
-  const username = document.getElementById("loginUsername").value;
-  const password = document.getElementById("loginPassword").value;
+  loginErr.textContent="";
   try{
-    const res = await fetch("/api/login",{
+    const res = await fetch("/api/login", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({username,password})
+      body: JSON.stringify({
+        username: document.getElementById("loginUsername").value,
+        password: document.getElementById("loginPassword").value
+      })
     });
     const data = await res.json();
     if(res.ok && data.token){
       setToken(data.token);
       window.location.href="/memberDashboard.html";
     } else loginErr.textContent = data.error || "Login failed";
-  } catch(e){
-    loginErr.textContent = e.message;
-  }
+  } catch(e){ loginErr.textContent = e.message; }
 });
 
-// --- REGISTRATION ---
+// REGISTRATION
 const regErr = document.getElementById("regErr");
 const regSuccess = document.getElementById("regSuccess");
-
 document.getElementById("registerBtn").addEventListener("click", async ()=>{
-  regErr.textContent = "";
-  regSuccess.textContent = "";
+  regErr.textContent = ""; regSuccess.textContent = "";
   try{
-    const data = await api("/api/member/register",{
+    const res = await api("/api/member/register", {
       method:"POST",
       auth:false,
       body:{
@@ -102,12 +91,10 @@ document.getElementById("registerBtn").addEventListener("click", async ()=>{
         email: document.getElementById("regEmail").value.trim() || null
       }
     });
-    setToken(data.token);
+    setToken(res.token);
     regSuccess.textContent = "Account created! Redirecting...";
-    setTimeout(()=>window.location.href="/memberDashboard.html", 1000);
-  } catch(e){
-    regErr.textContent = e.message || "Registration failed";
-  }
+    setTimeout(()=>window.location.href="/memberDashboard.html",1000);
+  } catch(e){ regErr.textContent = e.message || "Registration failed"; }
 });
 </script>
 </body>
