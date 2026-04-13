@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Powerhouse Gym | Register</title>
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+
+    <!-- LEFT SIDE (same as login) -->
+    <div class="login-left">
+      <img class="logo" src="/assets/img/powerhouse-gym-logo.png">
+      <h1>Powerhouse Gym Management System</h1>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="login-right">
+      <h2>Create Account</h2>
+      <div class="muted small">Register as a member</div>
+
+      <input id="fullName" placeholder="Full name">
+
+      <input id="username" placeholder="Username">
+      <input id="password" type="password" placeholder="Password">
+
+      <select id="membershipType">
+        <option value="monthly">Monthly</option>
+        <option value="annual">Annual</option>
+      </select>
+
+      <input id="phone" placeholder="Phone">
+      <input id="email" placeholder="Email (optional)">
+
+      <input id="profilePicture" type="file" accept="image/*">
+
+      <div class="actions">
+        <button class="btn btn-primary" id="registerBtn">Create Account</button>
+        <button class="btn btn-ghost" onclick="window.location.href='/login.html'">
+          Back to Login
+        </button>
+      </div>
+
+      <div class="error" id="errBox"></div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { api, setToken } from "/assets/js/app.js";
+
+const errBox = document.getElementById("errBox");
+
+let profilePictureData = null;
+
+// image preview
+document.getElementById("profilePicture").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => profilePictureData = reader.result;
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("registerBtn").addEventListener("click", async () => {
+  errBox.textContent = "";
+
+  try {
+    const res = await api("/api/member/register", {
+      method: "POST",
+      auth: false,
+      body: {
+        full_name: document.getElementById("fullName").value,
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+        membership_type: document.getElementById("membershipType").value,
+        phone: document.getElementById("phone").value || null,
+        email: document.getElementById("email").value || null,
+        profile_picture: profilePictureData
+      }
+    });
+
+    // IMPORTANT: use SAME token system
+    setToken(res.token);
+
+    window.location.href = "/memberDashboard.html";
+
+  } catch (e) {
+    errBox.textContent = e.message;
+  }
+});
+</script>
+</body>
+</html>

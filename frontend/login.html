@@ -1,47 +1,51 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Powerhouse Gym | Login</title>
-    <link rel="stylesheet" href="/assets/css/styles.css" />
-  </head>
-  <body>
-    <div class="login-wrap">
-      <div class="login-card">
-        <div class="login-left">
-          <img class="logo" src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo">
-          <h1>Powerhouse Gym Management System</h1>
-        </div>
-        <div class="login-right">
-          <h2>Login</h2>
-          <div class="muted small">Use your registered account.</div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Powerhouse Gym | Login</title>
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
 
-          <label for="username">Username</label>
-          <input id="username" placeholder="Enter username" autocomplete="username" />
+<body>
+<div class="login-wrap">
+  <div class="login-card">
 
-          <label for="password">Password</label>
-          <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
-
-          <div class="actions">
-            <button class="btn btn-primary" id="loginBtn">Sign in</button>
-            <button class="btn btn-ghost" id="createMemberBtn" type="button">Create Member Account</button>
-          </div>
-
-          <div class="error" id="errBox"></div>
-        </div>
-      </div>
+    <!-- LEFT -->
+    <div class="login-left">
+      <img class="logo" src="/assets/img/powerhouse-gym-logo.png">
+      <h1>Powerhouse Gym Management System</h1>
     </div>
 
-    <script type="module">
+    <!-- RIGHT -->
+    <div class="login-right">
+      <h2>Login</h2>
+      <div class="muted small">Use your registered account.</div>
+
+      <label>Username</label>
+      <input id="username" placeholder="Enter username" />
+
+      <label>Password</label>
+      <input id="password" type="password" placeholder="Enter password" />
+
+      <div class="actions">
+        <button class="btn btn-primary" id="loginBtn">Sign in</button>
+        <button class="btn btn-ghost" id="createMemberBtn">Create Member Account</button>
+      </div>
+
+      <div class="error" id="errBox"></div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
 import { api, setToken, getToken, clearToken } from "/assets/js/app.js";
 
 const errBox = document.getElementById("errBox");
-const username = document.getElementById("username");
-const password = document.getElementById("password");
 
-// AUTO REDIRECT
-(async function () {
+// AUTO LOGIN
+(async () => {
   const token = getToken();
   if (!token) return;
 
@@ -59,16 +63,16 @@ const password = document.getElementById("password");
 })();
 
 // LOGIN
-async function login() {
-  errBox.style.display = "none";
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  errBox.textContent = "";
 
   try {
     const data = await api("/api/auth/login", {
       method: "POST",
       auth: false,
       body: {
-        username: username.value.trim(),
-        password: password.value
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value
       }
     });
 
@@ -82,11 +86,14 @@ async function login() {
 
   } catch (e) {
     errBox.textContent = e.message || "Login failed";
-    errBox.style.display = "block";
   }
-}
+});
 
-document.getElementById("loginBtn").addEventListener("click", login);
+// GO TO REGISTER
+document.getElementById("createMemberBtn")
+  .addEventListener("click", () => {
+    window.location.href = "/register.html";
+});
 </script>
-  </body>
+</body>
 </html>
