@@ -7,39 +7,68 @@
 <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
-<h1>Powerhouse Gym</h1>
 
-<!-- LOGIN FORM -->
-<div id="loginForm">
-  <h2>Login</h2>
-  <input id="loginUsername" placeholder="Username">
-  <input id="loginPassword" type="password" placeholder="Password">
-  <button id="loginBtn">Sign In</button>
-  <button id="showRegisterBtn">Create Member Account</button>
-  <div id="loginErr" style="color:red"></div>
-</div>
+<div class="login-wrap">
+  <div class="login-card">
+    
+    <!-- LEFT SIDE (Brand Info) -->
+    <div class="login-left">
+      <img class="logo" src="/assets/img/powerhouse-gym-logo.png" alt="Powerhouse Gym logo">
+      <h1>Powerhouse Gym Management System</h1>
+      <p>Login or create your member account to access the system.</p>
+    </div>
 
-<!-- REGISTRATION FORM -->
-<div id="registerForm" style="display:none;">
-  <h2>Register</h2>
-  <input id="regFullName" placeholder="Full Name">
-  <input id="regUsername" placeholder="Username">
-  <input id="regPassword" type="password" placeholder="Password">
-  <select id="regMembership">
-    <option value="monthly">Monthly</option>
-    <option value="annual">Annual</option>
-  </select>
-  <input id="regPhone" placeholder="Phone">
-  <input id="regEmail" placeholder="Email">
-  <button id="registerBtn">Create Account</button>
-  <button id="showLoginBtn">Back to Login</button>
-  <div id="regErr" style="color:red"></div>
-  <div id="regSuccess" style="color:green"></div>
+    <!-- RIGHT SIDE (Login / Register Form) -->
+    <div class="login-right">
+      
+      <!-- LOGIN FORM -->
+      <div id="loginForm">
+        <h2>Login</h2>
+        <label>Username</label>
+        <input id="username" placeholder="Enter username">
+        <label>Password</label>
+        <input id="password" type="password" placeholder="Enter password">
+        <div class="actions">
+          <button id="loginBtn" class="btn btn-primary">Sign In</button>
+          <button id="showRegisterBtn" class="btn btn-ghost">Create Member Account</button>
+        </div>
+        <div id="loginErr" class="error"></div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="registerForm" style="display:none;">
+        <h2>Register</h2>
+        <label>Full Name</label>
+        <input id="fullName" placeholder="Enter full name">
+        <label>Username</label>
+        <input id="regUsername" placeholder="Create username">
+        <label>Password</label>
+        <input id="regPassword" type="password" placeholder="Min 6 characters">
+        <label>Membership Type</label>
+        <select id="membershipType">
+          <option value="monthly">Monthly</option>
+          <option value="annual">Annual</option>
+        </select>
+        <label>Phone</label>
+        <input id="phone" placeholder="09xx...">
+        <label>Email (optional)</label>
+        <input id="email" placeholder="name@email.com">
+        <div class="actions">
+          <button id="registerBtn" class="btn btn-primary">Create Account</button>
+          <button id="showLoginBtn" class="btn btn-ghost">Back to Login</button>
+        </div>
+        <div id="regErr" class="error"></div>
+        <div id="regSuccess" class="success"></div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script type="module">
 import { api, setToken, getToken } from "/assets/js/app.js";
 
+// If already logged in, redirect
 if(getToken()) window.location.href="/memberDashboard.html";
 
 // Show/hide forms
@@ -55,22 +84,23 @@ document.getElementById("showLoginBtn").addEventListener("click", ()=>{
 // LOGIN
 const loginErr = document.getElementById("loginErr");
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
-  loginErr.textContent="";
+  loginErr.textContent = "";
   try{
-    const res = await fetch("/api/login", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        username: document.getElementById("loginUsername").value,
-        password: document.getElementById("loginPassword").value
-      })
+    const res = await api("/api/login", {
+      method: "POST",
+      auth: false,
+      body: {
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value
+      }
     });
-    const data = await res.json();
-    if(res.ok && data.token){
-      setToken(data.token);
+    if(res.token){
+      setToken(res.token);
       window.location.href="/memberDashboard.html";
-    } else loginErr.textContent = data.error || "Login failed";
-  } catch(e){ loginErr.textContent = e.message; }
+    } else loginErr.textContent = "Login failed";
+  } catch(e){
+    loginErr.textContent = e.message || "Login failed";
+  }
 });
 
 // REGISTRATION
@@ -80,22 +110,27 @@ document.getElementById("registerBtn").addEventListener("click", async ()=>{
   regErr.textContent = ""; regSuccess.textContent = "";
   try{
     const res = await api("/api/member/register", {
-      method:"POST",
-      auth:false,
-      body:{
-        full_name: document.getElementById("regFullName").value.trim(),
+      method: "POST",
+      auth: false,
+      body: {
+        full_name: document.getElementById("fullName").value.trim(),
         username: document.getElementById("regUsername").value.trim(),
         password: document.getElementById("regPassword").value,
-        membership_type: document.getElementById("regMembership").value,
-        phone: document.getElementById("regPhone").value.trim() || null,
-        email: document.getElementById("regEmail").value.trim() || null
+        membership_type: document.getElementById("membershipType").value,
+        phone: document.getElementById("phone").value.trim() || null,
+        email: document.getElementById("email").value.trim() || null
       }
     });
-    setToken(res.token);
-    regSuccess.textContent = "Account created! Redirecting...";
-    setTimeout(()=>window.location.href="/memberDashboard.html",1000);
-  } catch(e){ regErr.textContent = e.message || "Registration failed"; }
+    if(res.token){
+      setToken(res.token);
+      regSuccess.textContent = "Account created! Redirecting...";
+      setTimeout(()=>window.location.href="/memberDashboard.html", 1000);
+    } else regErr.textContent = "Registration failed";
+  } catch(e){
+    regErr.textContent = e.message || "Registration failed";
+  }
 });
 </script>
+
 </body>
 </html>
