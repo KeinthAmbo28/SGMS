@@ -2,7 +2,6 @@
   "name": "smartgym-backend",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "dev": "node src/server.js",
