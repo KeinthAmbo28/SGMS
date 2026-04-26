@@ -67,7 +67,7 @@ async function save() {
     await refresh();
     clearForm();
   } catch (e) {
-    el("formMsg").textContent = e.message;
+    alert("Enter your full name");
   }
 }
 
