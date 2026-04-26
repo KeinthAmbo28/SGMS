@@ -67,7 +67,7 @@ async function save() {
     await refresh();
     clearForm();
   } catch (e) {
-    alert("Enter your full name");
+    alert("Enter valid details");
   }
 }
 
